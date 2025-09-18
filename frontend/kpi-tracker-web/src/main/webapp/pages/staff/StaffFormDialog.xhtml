@@ -1,0 +1,47 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/pages/californiatemplate/dialog-template.xhtml">
+
+    <ui:define name="content">
+        <title>Staff Form</title>
+        <h:form id="staffForm">
+            <p:panelGrid columns="2" layout="grid" styleClass="ui-panelgrid-blank form-group">
+                <p:outputLabel for="firstName" value="First Name:"/>
+                <p:inputText id="firstName" value="#{staffFormDialog.firstName}" required="true" label="First Name"/>
+
+                <p:outputLabel for="lastName" value="Last Name:"/>
+                <p:inputText id="lastName" value="#{staffFormDialog.lastName}" required="true" label="Last Name"/>
+
+                <p:outputLabel for="emailAddress" value="Email Address:"/>
+                <p:inputText id="emailAddress" value="#{staffFormDialog.emailAddress}" required="true" label="Email Address"/>
+
+
+                <p:outputLabel for="phoneNumber" value="Phone Number:"/>
+                <p:inputText id="phoneNumber" value="#{staffFormDialog.phoneNumber}" label="Phone Number" required="true"/>
+
+
+                <p:outputLabel for="gender" value="Gender:"/>
+                <p:selectOneMenu id="gender" value="#{staffFormDialog.gender}" label="Gender" converter="genderConverter" required="true">
+                    <f:selectItem itemLabel="Select Gender" itemValue="#{null}" noSelectionOption="true"/>
+                    <f:selectItems value="#{staffFormDialog.listOfGenders}" var="genderOption" itemLabel="#{genderOption.name()}" itemValue="#{genderOption}"/>
+                </p:selectOneMenu>
+
+                <p:outputLabel for="roles" value="Roles:"/>
+                <p:selectManyCheckbox converter="roleConverter" id="roles" value="#{staffFormDialog.selectedRoles}" layout="grid" columns="3" required="true">
+                    <f:selectItems value="#{staffFormDialog.allRoles}" var="roleOption" itemLabel="#{roleOption.name}" itemValue="#{roleOption}"/>
+                </p:selectManyCheckbox>
+            </p:panelGrid>
+
+            <p:commandButton value="Save"
+                             action="#{staffFormDialog.save}"
+                             update="staffForm"
+                              />
+            <p:commandButton value="Cancel"
+                             actionListener="#{staffFormDialog.resetModal()}"
+                             immediate="true"/>
+        </h:form>
+    </ui:define>
+</ui:composition>

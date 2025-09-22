@@ -16,7 +16,7 @@ public class Staff extends BaseEntity {
     private static final long serialVersionUID = 1L;
     private StaffStatus staffStatus;
     private User userAccount;
-
+    private boolean isActive = true; // Default to active
 
     @OneToOne(cascade = CascadeType.ALL, optional = true)
     @JoinColumn(name = "user_id")
@@ -38,9 +38,19 @@ public class Staff extends BaseEntity {
         this.staffStatus = staffStatus;
     }
 
+    @Column(name = "is_active")
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
+        if (o == null || getClass() != o.getClass())
+            return false;
         Staff staff = (Staff) o;
         return staffStatus == staff.staffStatus && Objects.equals(userAccount, staff.userAccount);
     }

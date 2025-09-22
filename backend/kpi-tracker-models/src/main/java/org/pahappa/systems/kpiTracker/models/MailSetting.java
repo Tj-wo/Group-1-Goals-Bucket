@@ -9,85 +9,134 @@ import javax.persistence.*;
 @Inheritance(strategy = InheritanceType.JOINED)
 public class MailSetting extends BaseEntity {
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = 1L;
-    
-    private String senderAddress = "fred@pahappa.com";
-    private String senderPassword = "fred";
-    private String senderSmtpHost = "smtp.gmail.com";
-    private String senderSmtpPort = "587";
-    
-
-    /**
-	 * @return the senderAddress
+	/**
+	 *
 	 */
-    @Column(name = "sender_address", nullable = false, length = 100)
-	public String getSenderAddress() {
-		return senderAddress;
+	private static final long serialVersionUID = 1L;
+
+	// SMTP Configuration
+	private String smtpHost;
+	private String smtpPort;
+	private String smtpUsername;
+	private String smtpPassword;
+	private String senderEmail;
+	private boolean smtpAuth;
+	private boolean smtpStartTls;
+
+	/**
+	 * @return the smtpHost
+	 */
+	@Column(name = "smtp_host", length = 100)
+	public String getSmtpHost() {
+		return smtpHost;
 	}
 
 	/**
-	 * @param senderAddress the senderAddress to set
+	 * @param smtpHost the smtpHost to set
 	 */
-	public void setSenderAddress(String senderAddress) {
-		this.senderAddress = senderAddress;
+	public void setSmtpHost(String smtpHost) {
+		this.smtpHost = smtpHost;
 	}
 
 	/**
-	 * @return the senderPassword
+	 * @return the smtpPort
 	 */
-    @Column(name = "sender_password", nullable = false, length = 100)
-	public String getSenderPassword() {
-		return senderPassword;
+	@Column(name = "smtp_port", length = 10)
+	public String getSmtpPort() {
+		return smtpPort;
 	}
 
 	/**
-	 * @param senderPassword the senderPassword to set
+	 * @param smtpPort the smtpPort to set
 	 */
-	public void setSenderPassword(String senderPassword) {
-		this.senderPassword = senderPassword;
+	public void setSmtpPort(String smtpPort) {
+		this.smtpPort = smtpPort;
 	}
 
 	/**
-	 * @return the senderSmtpHost
+	 * @return the smtpUsername
 	 */
-    @Column(name = "sender_host", nullable = false, length = 100)
-	public String getSenderSmtpHost() {
-		return senderSmtpHost;
+	@Column(name = "smtp_username", length = 100)
+	public String getSmtpUsername() {
+		return smtpUsername;
 	}
 
 	/**
-	 * @param senderSmtpHost the senderSmtpHost to set
+	 * @param smtpUsername the smtpUsername to set
 	 */
-	public void setSenderSmtpHost(String senderSmtpHost) {
-		this.senderSmtpHost = senderSmtpHost;
+	public void setSmtpUsername(String smtpUsername) {
+		this.smtpUsername = smtpUsername;
 	}
 
 	/**
-	 * @return the senderSmtpPort
+	 * @return the smtpPassword
 	 */
-    @Column(name = "sender_port", nullable = false, length = 100)
-	public String getSenderSmtpPort() {
-		return senderSmtpPort;
+	@Column(name = "smtp_password", length = 100)
+	public String getSmtpPassword() {
+		return smtpPassword;
 	}
 
 	/**
-	 * @param senderSmtpPort the senderSmtpPort to set
+	 * @param smtpPassword the smtpPassword to set
 	 */
-	public void setSenderSmtpPort(String senderSmtpPort) {
-		this.senderSmtpPort = senderSmtpPort;
+	public void setSmtpPassword(String smtpPassword) {
+		this.smtpPassword = smtpPassword;
+	}
+
+	/**
+	 * @return the smtpAuth
+	 */
+	@Column(name = "smtp_auth")
+	public boolean isSmtpAuth() {
+		return smtpAuth;
+	}
+
+	/**
+	 * @param smtpAuth the smtpAuth to set
+	 */
+	public void setSmtpAuth(boolean smtpAuth) {
+		this.smtpAuth = smtpAuth;
+	}
+
+	/**
+	 * @return the smtpStartTls
+	 */
+	@Column(name = "smtp_starttls")
+	public boolean isSmtpStartTls() {
+		return smtpStartTls;
+	}
+
+	/**
+	 * @param smtpStartTls the smtpStartTls to set
+	 */
+	public void setSmtpStartTls(boolean smtpStartTls) {
+		this.smtpStartTls = smtpStartTls;
+	}
+
+	/**
+	 * @return the senderEmail
+	 */
+	@Column(name = "sender_email", length = 100)
+	public String getSenderEmail() {
+		return senderEmail;
+	}
+
+	/**
+	 * @param senderEmail the senderEmail to set
+	 */
+	public void setSenderEmail(String senderEmail) {
+		this.senderEmail = senderEmail;
 	}
 
 	@Override
-    public boolean equals(Object object) {
-        return object instanceof MailSetting && (super.getId() != null) ? super.getId().equals(((MailSetting) object).getId())
-                : (object == this);
-    }
+	public boolean equals(Object object) {
+		return object instanceof MailSetting && (super.getId() != null)
+				? super.getId().equals(((MailSetting) object).getId())
+				: (object == this);
+	}
 
-    @Override
-    public int hashCode() {
-        return super.getId() != null ? this.getClass().hashCode() + super.getId().hashCode() : super.hashCode();
-    }
+	@Override
+	public int hashCode() {
+		return super.getId() != null ? this.getClass().hashCode() + super.getId().hashCode() : super.hashCode();
+	}
 }

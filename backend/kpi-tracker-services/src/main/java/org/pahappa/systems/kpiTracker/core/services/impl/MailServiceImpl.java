@@ -1,29 +1,24 @@
 package org.pahappa.systems.kpiTracker.core.services.impl;
 
 import org.pahappa.systems.kpiTracker.core.services.MailService;
-import org.pahappa.systems.kpiTracker.core.services.MailSettingService;
-import org.pahappa.systems.kpiTracker.models.MailSetting;
+import org.pahappa.systems.kpiTracker.core.services.SmtpService;
 import org.sers.webutils.server.shared.CustomLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.mail.*;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
 
 @Service("mailService")
 @Transactional
 public class MailServiceImpl implements MailService {
 
-    private final MailSettingService mailSettingService;
+    private final SmtpService smtpService;
 
     @Autowired
-    public MailServiceImpl(MailSettingService mailSettingService) {
-        this.mailSettingService = mailSettingService;
+    public MailServiceImpl(SmtpService smtpService) {
+        this.smtpService = smtpService;
     }
 
     @Override
@@ -33,44 +28,44 @@ public class MailServiceImpl implements MailService {
 
     @Override
     public void sendMail(List<String> recipients, String subject, String messageBody) {
-        MailSetting mailSetting = mailSettingService.getMailSetting();
-        if (mailSetting == null) {
-            CustomLogger.log(getClass(), CustomLogger.LogSeverity.LEVEL_ERROR, "Mail settings not configured. Cannot send email.");
-            return;
-        }
-
-        Properties props = new Properties();
-        props.put("mail.smtp.host", mailSetting.getSenderSmtpHost());
-        props.put("mail.smtp.port", mailSetting.getSenderSmtpPort());
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-
-        Session session = Session.getInstance(props, new Authenticator() {
-            @Override
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(mailSetting.getSenderAddress(), mailSetting.getSenderPassword());
-            }
-        });
-
         try {
-            Message message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(mailSetting.getSenderAddress()));
-
-            InternetAddress[] recipientAddresses = new InternetAddress[recipients.size()];
-            for (int i = 0; i < recipients.size(); i++) {
-                recipientAddresses[i] = new InternetAddress(recipients.get(i));
+            // Send email to each recipient individually
+            for (String recipient : recipients) {
+                boolean success = smtpService.sendMail(recipient, subject, messageBody);
+                if (!success) {
+                    throw new RuntimeException("Failed to send email to: " + recipient);
+                }
             }
-            message.setRecipients(Message.RecipientType.TO, recipientAddresses);
-            message.setSubject(subject);
-            message.setText(messageBody);
+            CustomLogger.log(getClass(), CustomLogger.LogSeverity.LEVEL_INFO,
+                    "Email sent successfully via SMTP to: " + recipients);
+        } catch (Exception e) {
+            CustomLogger.log(getClass(), CustomLogger.LogSeverity.LEVEL_ERROR,
+                    "Failed to send email via SMTP. Error: " + e.getMessage());
+            throw new RuntimeException("Failed to send email via SMTP", e);
+        }
+    }
 
-            Transport.send(message);
+    @Override
+    public void sendHtmlMail(String recipient, String subject, String htmlBody, String textBody) {
+        sendHtmlMail(Collections.singletonList(recipient), subject, htmlBody, textBody);
+    }
 
-            CustomLogger.log(getClass(), CustomLogger.LogSeverity.LEVEL_INFO, "Email sent successfully to: " + recipients);
-
-        } catch (MessagingException e) {
-            CustomLogger.log(getClass(), CustomLogger.LogSeverity.LEVEL_ERROR, "Failed to send email. Error: " + e.getMessage());
-            throw new RuntimeException("Failed to send email", e);
+    @Override
+    public void sendHtmlMail(List<String> recipients, String subject, String htmlBody, String textBody) {
+        try {
+            // Send HTML email to each recipient individually
+            for (String recipient : recipients) {
+                boolean success = smtpService.sendHtmlMail(recipient, subject, htmlBody);
+                if (!success) {
+                    throw new RuntimeException("Failed to send HTML email to: " + recipient);
+                }
+            }
+            CustomLogger.log(getClass(), CustomLogger.LogSeverity.LEVEL_INFO,
+                    "HTML email sent successfully via SMTP to: " + recipients);
+        } catch (Exception e) {
+            CustomLogger.log(getClass(), CustomLogger.LogSeverity.LEVEL_ERROR,
+                    "Failed to send HTML email via SMTP. Error: " + e.getMessage());
+            throw new RuntimeException("Failed to send HTML email via SMTP", e);
         }
     }
 }

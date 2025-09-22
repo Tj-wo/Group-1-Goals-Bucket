@@ -9,6 +9,7 @@
     <ui:define name="viewname">Staff Management</ui:define>
 
     <ui:define name="content">
+
         <div class="ui-g ui-fluid">
             <div class="ui-g-12">
                 <h:form id="staffView">
@@ -75,6 +76,7 @@
                         </div>
                     </div>
 
+                    <!-- Staff Data Table -->
                     <p:dataTable id="staffTable" var="staff" value="#{staffView.dataModels}"
                                  widgetVar="staffTable"
                                  paginator="true" lazy="true"
@@ -105,31 +107,57 @@
                             </div>
                         </f:facet>
 
-                        <!-- Columns -->
+                        <!-- Row Number -->
                         <p:column width="30" headerText="No.">
                             <h:outputText value="#{row + 1}" />
                         </p:column>
 
-                        <p:column headerText="Full Name">
-                            <h:outputText value="#{staff.firstName} #{staff.lastName}" />
+                        <!-- First Name -->
+                        <p:column headerText="First Name">
+                            <h:outputText value="#{staff.userAccount.firstName}" />
                         </p:column>
 
+                        <!-- Last Name -->
+                        <p:column headerText="Last Name">
+                            <h:outputText value="#{staff.userAccount.lastName}" />
+                        </p:column>
+
+                        <!-- Email Address -->
                         <p:column headerText="Email Address">
-                            <h:outputText value="#{staff.emailAddress}" />
+                            <h:outputText value="#{staff.userAccount.emailAddress}" />
                         </p:column>
 
+                        <!-- Phone Number -->
+                        <p:column headerText="Phone Number">
+                            <h:outputText value="#{staff.userAccount.phoneNumber}" />
+                        </p:column>
+
+                        <!-- Gender -->
                         <p:column headerText="Gender">
-                            <h:outputText value="#{staff.gender.name()}" />
+                            <h:outputText value="#{staff.userAccount.gender != null ? staff.userAccount.gender.name() : 'N/A'}" />
                         </p:column>
 
+                        <!-- Staff Status -->
+                        <p:column headerText="Staff Status">
+                            <p:tag value="#{staff.staffStatus}" rounded="true"
+                                   styleClass="#{staff.staffStatus == 'ACTIVE' ? 'ui-tag-success' : 'ui-tag-danger'}" />
+                        </p:column>
+
+                        <!-- Account Status -->
                         <p:column headerText="Account Status">
-                            <p:tag value="#{staff.staffStatus == 'ACTIVE' ? 'Active' : 'Deactivated'}"
+                            <p:tag value="#{staff.userAccount != null and staff.userAccount.recordStatus == 'ACTIVE' ? 'Active' : 'Inactive'}"
                                    rounded="true"
-                                   styleClass="#{staff.staffStatus == 'ACTIVE' ? 'ui-tag-success' : 'ui-tag-warning'}" />
+                                   styleClass="#{staff.userAccount != null and staff.userAccount.recordStatus == 'ACTIVE' ? 'ui-tag-success' : 'ui-tag-warning'}" />
+                        </p:column>
+
+                        <!-- Access Status -->
+                        <p:column headerText="Access Status">
+                            <p:tag value="#{staff.active ? 'Can Access' : 'Blocked'}" rounded="true"
+                                   styleClass="#{staff.active ? 'ui-tag-success' : 'ui-tag-danger'}" />
                         </p:column>
 
                         <!-- Actions Column -->
-                        <p:column headerText="Action" width="140" exportable="false" style="text-align:center">
+                        <p:column headerText="Actions" width="200" style="text-align:center">
                             <!-- Edit Button -->
                             <p:commandButton icon="fa fa-pencil"
                                              styleClass="ui-button-secondary ui-button-flat"
@@ -144,6 +172,10 @@
                             <p:commandButton icon="fa fa-check" title="Activate User Account"
                                              rendered="#{staff.staffStatus != 'ACTIVE'}"
                                              styleClass="ui-button-info ui-button-flat"
+
+                            <p:commandButton icon="fa fa-check" title="Activate"
+                                             rendered="#{staff.staffStatus != 'ACTIVE' or !staff.active}"
+                                             styleClass="ui-button-success ui-button-flat"
                                              style="margin-left:5px"
                                              actionListener="#{staffView.activateAccount(staff)}"
                                              update=":staffView:staffTable :staffView:messages"/>
@@ -152,6 +184,9 @@
                             <p:commandButton icon="fa fa-times" title="Deactivate User account"
                                              rendered="#{staff.staffStatus == 'ACTIVE'}"
                                              styleClass="ui-button-warning ui-button-flat"
+                            <p:commandButton icon="fa fa-times" title="Deactivate"
+                                             rendered="#{staff.staffStatus == 'ACTIVE' and staff.active}"
+                                             styleClass="ui-button-danger ui-button-flat"
                                              style="margin-left:5px"
                                              actionListener="#{staffView.deactivateAccount(staff)}"
                                              update=":staffView:staffTable :staffView:messages"/>
@@ -163,16 +198,18 @@
                                              actionListener="#{staffView.deleteStaff(staff)}"
                                              update=":staffView:staffTable :staffView:statsPanel">
                                 <p:confirm header="Confirmation"
-                                           message="You are about to delete staff member '#{staff.firstName} #{staff.lastName}'. Do you wish to continue?"
+                                           message="You are about to delete staff member '#{staff.userAccount.firstName} #{staff.userAccount.lastName}'. Do you wish to continue?"
                                            icon="ui-icon-alert" />
                             </p:commandButton>
                         </p:column>
                     </p:dataTable>
 
+                    <!-- Loader -->
                     <p:blockUI block="staffView" trigger="searchBtn">
                         <i class="pi pi-spin pi-spinner" style="font-size: 3rem"></i>
                     </p:blockUI>
 
+                    <!-- Confirm Dialog -->
                     <p:confirmDialog global="true" showEffect="fade" hideEffect="fade" responsive="true" width="350">
                         <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no ui-button-secondary"/>
                         <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes ui-button-danger"/>

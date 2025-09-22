@@ -7,9 +7,11 @@ import org.pahappa.systems.kpiTracker.core.services.StaffService;
 import org.pahappa.systems.kpiTracker.models.constants.StaffStatus;
 import org.pahappa.systems.kpiTracker.models.staff.Staff;
 import org.pahappa.systems.kpiTracker.security.HyperLinks;
+import org.pahappa.systems.kpiTracker.utils.SecurePasswordGenerator;
 import org.pahappa.systems.kpiTracker.views.dialogs.DialogForm;
 import org.sers.webutils.model.Gender;
 import org.sers.webutils.model.RecordStatus;
+import org.sers.webutils.model.exception.ValidationFailedException;
 import org.sers.webutils.model.security.Role;
 import org.sers.webutils.model.security.User;
 import org.sers.webutils.server.core.security.util.CustomSecurityUtil;
@@ -20,8 +22,10 @@ import org.sers.webutils.server.core.utils.ApplicationContextProvider;
 import javax.annotation.PostConstruct;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
-import javax.faces.bean.ViewScoped;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 
 @ManagedBean(name = "staffFormDialog")
 @SessionScoped
@@ -30,15 +34,17 @@ import java.util.*;
 public class StaffFormDialog extends DialogForm<Staff> {
 
     private static final long serialVersionUID = 1L;
+
     private StaffService staffService;
     private UserService userService;
     private RoleService roleService;
+
     private List<Gender> listOfGenders;
     private List<Role> allRoles;
-    private Role selectedRole;
+    private Role selectedRole; // Added from ft-permission&roles branch
     private User savedUser;
-    private boolean edit = false;
-
+    private String generatedPassword;
+    private boolean edit;
 
     public StaffFormDialog() {
         super(HyperLinks.STAFF_FORM_DIALOG, 700, 450);
@@ -57,45 +63,81 @@ public class StaffFormDialog extends DialogForm<Staff> {
 
     @Override
     public void persist() throws Exception {
+        if (edit) {
+            // Update existing staff
+            this.staffService.saveStaff(super.model);
+        } else {
+            // Create new staff with a user account
+            createNewStaff();
+        }
+    }
 
-        User userAccount = new User();
-        userAccount.setFirstName(model.getFirstName());
-        userAccount.setLastName(model.getLastName());
-        userAccount.setEmailAddress(model.getEmailAddress());
-        userAccount.setUsername(model.getEmailAddress());
-        userAccount.setPhoneNumber(model.getPhoneNumber());
-        userAccount.setGender(model.getGender());
-        userAccount.setRecordStatus(RecordStatus.ACTIVE_LOCKED);
-        userAccount.setSalt(UUID.randomUUID().toString());
-        userAccount.setClearTextPassword("password123");
-
-        CustomSecurityUtil.prepUserCredentials(userAccount);
-
-        if (this.selectedRole != null) {
-            userAccount.setRoles(new HashSet<>(Collections.singletonList(this.selectedRole)));
+    /**
+     * Creates a new staff record and associated user account.
+     */
+    private void createNewStaff() throws Exception {
+        if (model.getUserAccount() == null) {
+            throw new ValidationFailedException("User account is required for staff creation.");
         }
 
-        model.setUserAccount(userAccount);
+        User user = model.getUserAccount();
 
+        // Generate a secure random password
+        generatedPassword = SecurePasswordGenerator.generateTemporaryPassword();
+        user.setClearTextPassword(generatedPassword);
+        user.setRecordStatus(RecordStatus.ACTIVE_LOCKED);
+        user.setUsername(user.getEmailAddress());
+
+        // Set the selected role
+        if (this.selectedRole != null) {
+            user.setRoles(new HashSet<>(Collections.singletonList(this.selectedRole)));
+        }
+
+        // Save the user account
+        savedUser = userService.saveUser(user);
+
+        // Set staff properties
         model.setStaffStatus(StaffStatus.DEACTIVATED);
-        this.staffService.saveStaff(model);
+        model.setUserAccount(savedUser);
+
+        // Save the staff record and send welcome email
+        this.staffService.saveStaff(super.model, generatedPassword);
     }
 
     @Override
     public void resetModal() {
         super.resetModal();
         super.model = new Staff();
-        this.allRoles = roleService.getRoles();
         this.edit = false;
+        this.selectedRole = null;
+        this.allRoles = roleService.getRoles();
 
+        // Create a new default user for the staff
+        User newUser = new User();
+        newUser.setRecordStatus(RecordStatus.ACTIVE);
+        super.model.setUserAccount(newUser);
     }
 
     @Override
     public void setFormProperties() {
         super.setFormProperties();
-        this.edit = true;
-//        if(super.model != null){
-////            selectedRoles = model.getUserAccount().getRoles();
-//        }
+        this.allRoles = roleService.getRoles();
+
+        if (super.model != null && super.model.getId() != null) {
+            setEdit(true);
+             if (super.model.getUserAccount() != null && !super.model.getUserAccount().getRoles().isEmpty()) {
+                this.selectedRole = super.model.getUserAccount().getRoles().iterator().next();
+            }
+        } else {
+            if (super.model == null) {
+                super.model = new Staff();
+            }
+            if (super.model.getUserAccount() == null) {
+                User newUser = new User();
+                newUser.setRecordStatus(RecordStatus.ACTIVE);
+                super.model.setUserAccount(newUser);
+            }
+            setEdit(false);
+        }
     }
 }

@@ -38,60 +38,85 @@ public class CustomApplicationSettings extends DefaultApplicationSettings {
 					.getMailSetting();
 			CustomLogger.log(getClass(), CustomLogger.LogSeverity.LEVEL_ERROR,
 					String.format("Created instance for mail settings..."));
-		} catch ( Exception e) {
+		} catch (Exception e) {
 			CustomLogger.log(getClass(), CustomLogger.LogSeverity.LEVEL_ERROR, String.format(
 					"Error: %s, while creating instance for application settings. We shall sleep and wake up later...",
 					e.getMessage()));
 		}
 	}
+
 	@Override
 	public String getOrganizationName() {
 		return "Pahappa Ltd";
 	}
+
 	@Override
 	public int getMaximumRecordsPerPage() {
 		return 10;
 	}
+
 	@Override
 	public List<String> getErrorMessageRecipients() {
-		return Arrays.asList(new String[] {"fred@pahappa.com" });
+		return Arrays.asList(new String[] { "fred@pahappa.com" });
 	}
+
 	@Override
 	public String getDefaultMailSenderAddress() {
-		return CustomApplicationSettings.mailSetting.getSenderAddress();
+		if (CustomApplicationSettings.mailSetting != null) {
+			return CustomApplicationSettings.mailSetting.getSenderEmail();
+		}
+		return "systems@pahappa.com"; // Default fallback
 	}
+
 	@Override
 	public String getDefaultMailSenderPassword() {
-		return CustomApplicationSettings.mailSetting.getSenderPassword();
+		if (CustomApplicationSettings.mailSetting != null) {
+			return CustomApplicationSettings.mailSetting.getSmtpPassword();
+		}
+		return "SMTP_PASSWORD"; // Default fallback
 	}
+
 	@Override
 	public String getDefaultMailSenderSmtpHost() {
-		return CustomApplicationSettings.mailSetting.getSenderSmtpHost();
+		if (CustomApplicationSettings.mailSetting != null) {
+			return CustomApplicationSettings.mailSetting.getSmtpHost();
+		}
+		return "smtp.gmail.com"; // Default Gmail SMTP
 	}
+
 	@Override
 	public String getDefaultMailSenderSmtpPort() {
-		return CustomApplicationSettings.mailSetting.getSenderSmtpPort();
+		if (CustomApplicationSettings.mailSetting != null) {
+			return CustomApplicationSettings.mailSetting.getSmtpPort();
+		}
+		return "587"; // Default SMTP port
 	}
+
 	@Override
 	public String getDefaultClientFeedbackMail() {
 		return "xyz@gmail.com";
 	}
+
 	@Override
 	public String getDefaultSuperUserEmail() {
 		return "leonard@pahappa.com";
 	}
+
 	@Override
 	public String getDefaultSuperUserPhoneNumber() {
 		return "256700000000";
 	}
+
 	@Override
 	public NumberFormat getDoubleNumberFormater() {
 		return DOUBLE_FORMATTER;
 	}
+
 	@Override
 	public NumberFormat getIntegerNumberFormater() {
 		return INTEGER_FORMATER;
 	}
+
 	@Override
 	public String getPasswordChangeToken() {
 		return super.passwordChangeToken;

@@ -5,6 +5,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.pahappa.systems.kpiTracker.core.dao.StaffDao;
 import org.pahappa.systems.kpiTracker.core.services.StaffService;
+import org.pahappa.systems.kpiTracker.models.constants.StaffStatus;
 import org.pahappa.systems.kpiTracker.models.staff.Staff;
 import org.pahappa.systems.kpiTracker.utils.Validate;
 import org.pahappa.systems.kpiTracker.core.services.MailService;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Date;
@@ -33,15 +35,11 @@ public class StaffServiceImpl extends GenericServiceImpl<Staff> implements Staff
     private StaffDao staffDao;
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
     private RoleService roleService;
 
     @Autowired
-    private MailService mailService;
+    private UserService userService;
 
-    User savedUser;
 
     @Override
     public Staff saveStaff(Staff staff) throws ValidationFailedException {
@@ -60,15 +58,48 @@ public class StaffServiceImpl extends GenericServiceImpl<Staff> implements Staff
 
     @Override
     public User activateUserAccount(Staff staff) throws ValidationFailedException, OperationFailedException {
+        Validate.notNull(staff, "Staff member not specified");
+        Validate.notNull(staff.getUserAccount(), "Staff member does not have a user account.");
+        staff.setStaffStatus(StaffStatus.ACTIVE);
 
-        return savedUser;
+        User user = new User();
+
+        user.setFirstName(staff.getFirstName());
+        user.setLastName(staff.getLastName());
+        user.setEmailAddress(staff.getEmailAddress());
+        user.setUsername(staff.getEmailAddress());
+        user.setPhoneNumber(staff.getPhoneNumber());
+        user.setGender(staff.getGender());
+        user.setPassword("password123");
+        user.setRoles(Collections.singleton(getNormalUserRole()));
+
+        if (user != null) {
+            user.setRecordStatus(RecordStatus.ACTIVE);
+            userService.saveUser(user);
+        }
+
+        this.staffDao.update(staff);
+
+        return user;
+    }
+
+    public Role getNormalUserRole() {
+        return (roleService.getRoleByName("Normal User"));
     }
 
     @Override
     public void deactivateUserAccount(Staff staff) throws ValidationFailedException, OperationFailedException {
         Validate.notNull(staff, "Staff member not specified");
         Validate.notNull(staff.getUserAccount(), "Staff member does not have a user account.");
-        userService.deleteUser(staff.getUserAccount());
+
+        staff.setStaffStatus(StaffStatus.DEACTIVATED);
+        this.staffDao.update(staff);
+
+        User user = staff.getUserAccount();
+        if (user != null) {
+            user.setRecordStatus(RecordStatus.ACTIVE_LOCKED);
+            userService.saveUser(user);
+        }
     }
 
     @Override

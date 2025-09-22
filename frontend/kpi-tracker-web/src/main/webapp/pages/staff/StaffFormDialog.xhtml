@@ -6,42 +6,112 @@
                 template="/pages/californiatemplate/dialog-template.xhtml">
 
     <ui:define name="content">
-        <title>Staff Form</title>
+        <title>#{staffFormDialog.edit ? 'Edit Staff' : 'Add Staff'}</title>
+
         <h:form id="staffForm">
-            <p:panelGrid columns="2" layout="grid" styleClass="ui-panelgrid-blank form-group">
-                <p:outputLabel for="firstName" value="First Name:"/>
-                <p:inputText id="firstName" value="#{staffFormDialog.firstName}" required="true" label="First Name"/>
+            <p:growl id="messages" showDetail="true" life="4000" />
 
-                <p:outputLabel for="lastName" value="Last Name:"/>
-                <p:inputText id="lastName" value="#{staffFormDialog.lastName}" required="true" label="Last Name"/>
+            <div class="card ui-fluid">
+                <div class="p-formgrid p-grid">
+                    <!-- First Name -->
+                    <div class="p-field p-col-6">
+                        <p:outputLabel for="firstName" value="First Name"/>
+                        <p:inputText id="firstName"
+                                     value="#{staffFormDialog.model.firstName}"
+                                     required="true"
+                                     requiredMessage="First name is required"
+                                     placeholder="Enter first name">
+                            <p:ajax event="blur" update="messages"/>
+                        </p:inputText>
+                    </div>
 
-                <p:outputLabel for="emailAddress" value="Email Address:"/>
-                <p:inputText id="emailAddress" value="#{staffFormDialog.emailAddress}" required="true" label="Email Address"/>
+                    <!-- Last Name -->
+                    <div class="p-field p-col-6">
+                        <p:outputLabel for="lastName" value="Last Name"/>
+                        <p:inputText id="lastName"
+                                     value="#{staffFormDialog.model.lastName}"
+                                     required="true"
+                                     requiredMessage="Last name is required"
+                                     placeholder="Enter last name">
+                            <p:ajax event="blur" update="messages"/>
+                        </p:inputText>
+                    </div>
+                </div>
 
+                <div>
+                    <!-- Email -->
+                    <div class="p-field p-col-12">
+                        <p:outputLabel for="email" value="Email Address"/>
+                        <p:inputText id="email"
+                                     value="#{staffFormDialog.model.emailAddress}"
+                                     required="true"
+                                     requiredMessage="Email address is required"
+                                     placeholder="Enter email address"
+                                     validatorMessage="Invalid email format">
+                            <f:validateRegex pattern="^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$" />
+                            <p:ajax event="blur" update="messages"/>
+                        </p:inputText>
+                    </div>
 
-                <p:outputLabel for="phoneNumber" value="Phone Number:"/>
-                <p:inputText id="phoneNumber" value="#{staffFormDialog.phoneNumber}" label="Phone Number" required="true"/>
+                    <!-- Phone Number -->
+                    <div class="p-field p-col-12">
+                        <p:outputLabel for="phoneNumber" value="Phone Number"/>
+                        <p:inputText id="phoneNumber"
+                                     value="#{staffFormDialog.model.phoneNumber}"
+                                     required="true"
+                                     requiredMessage="Phone number is required"
+                                     placeholder="0771234567 or 256771234567"
+                                     validatorMessage="Invalid phone number format">
+                            <f:validateRegex pattern="^(0(77|74|78|76|70)\d{7}|256(77|74|78|76|70)\d{7})$" />
+                            <p:ajax event="blur" update="messages"/>
+                        </p:inputText>
+                    </div>
 
+                    <!-- Gender -->
+                    <div class="p-field p-col-12">
+                        <p:outputLabel for="gender" value="Gender"/>
+                        <p:selectOneMenu id="gender"
+                                         value="#{staffFormDialog.model.gender}"
+                                         converter="genderConverter"
+                                         required="true"
+                                         requiredMessage="Please select a gender">
+                            <f:selectItem itemLabel="Select Gender" itemValue="#{null}" noSelectionOption="true"/>
+                            <f:selectItems value="#{staffFormDialog.listOfGenders}" var="g" itemLabel="#{g.name()}" itemValue="#{g}"/>
+                        </p:selectOneMenu>
+                    </div>
 
-                <p:outputLabel for="gender" value="Gender:"/>
-                <p:selectOneMenu id="gender" value="#{staffFormDialog.gender}" label="Gender" converter="genderConverter" required="true">
-                    <f:selectItem itemLabel="Select Gender" itemValue="#{null}" noSelectionOption="true"/>
-                    <f:selectItems value="#{staffFormDialog.listOfGenders}" var="genderOption" itemLabel="#{genderOption.name()}" itemValue="#{genderOption}"/>
-                </p:selectOneMenu>
+                    <!-- Roles -->
+                    <div class="p-field p-col-12">
+                        <p:outputLabel for="roles" value="Assign Role"/>
+                        <p:selectOneRadio id="roles"
+                                          value="#{staffFormDialog.selectedRole}"
+                                          converter="roleConverter"
+                                          layout="grid"
+                                          columns="3"
+                                          required="true"
+                                          requiredMessage="A role must be assigned">
+                            <f:selectItems value="#{staffFormDialog.allRoles}" var="role" itemLabel="#{role.name}" itemValue="#{role}"/>
+                        </p:selectOneRadio>
+                    </div>
+                </div>
+            </div>
 
-                <p:outputLabel for="roles" value="Roles:"/>
-                <p:selectManyCheckbox converter="roleConverter" id="roles" value="#{staffFormDialog.selectedRoles}" layout="grid" columns="3" required="true">
-                    <f:selectItems value="#{staffFormDialog.allRoles}" var="roleOption" itemLabel="#{roleOption.name}" itemValue="#{roleOption}"/>
-                </p:selectManyCheckbox>
-            </p:panelGrid>
+            <!-- Action Buttons -->
+            <div class="flex justify-content-end gap-2 mt-4">
+                <p:commandButton value="Cancel"
+                                 icon="pi pi-times"
+                                 action="#{staffFormDialog.resetModal}"
+                                 immediate="true"
+                                 process="@this"
+                                 style="margin-top: 10px; margin-right: 10px;"
+                                 styleClass="ui-button-danger"/>
 
-            <p:commandButton value="Save"
-                             action="#{staffFormDialog.save}"
-                             update="staffForm"
-                              />
-            <p:commandButton value="Cancel"
-                             actionListener="#{staffFormDialog.resetModal()}"
-                             immediate="true"/>
+                <p:commandButton value="#{staffFormDialog.edit ? 'Update' : 'Save'}"
+                                 icon="pi pi-check"
+                                 actionListener="#{staffFormDialog.save}"
+                                 update="staffForm messages"
+                                 styleClass="ui-button-primary" />
+            </div>
         </h:form>
     </ui:define>
 </ui:composition>

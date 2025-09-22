@@ -7,9 +7,7 @@ import org.pahappa.systems.kpiTracker.models.constants.StaffStatus;
 import org.pahappa.systems.kpiTracker.models.staff.Staff;
 import org.pahappa.systems.kpiTracker.security.HyperLinks;
 import org.pahappa.systems.kpiTracker.views.dialogs.DialogForm;
-import org.primefaces.model.DualListModel;
 import org.sers.webutils.model.Gender;
-import org.sers.webutils.model.RecordStatus;
 import org.sers.webutils.model.security.Role;
 import org.sers.webutils.model.security.User;
 import org.sers.webutils.server.core.service.RoleService;
@@ -18,11 +16,12 @@ import org.sers.webutils.server.core.utils.ApplicationContextProvider;
 
 import javax.annotation.PostConstruct;
 import javax.faces.bean.ManagedBean;
+import javax.faces.bean.SessionScoped;
 import javax.faces.bean.ViewScoped;
 import java.util.*;
 
 @ManagedBean(name = "staffFormDialog")
-@ViewScoped
+@SessionScoped
 @Getter
 @Setter
 public class StaffFormDialog extends DialogForm<Staff> {
@@ -31,15 +30,11 @@ public class StaffFormDialog extends DialogForm<Staff> {
     private StaffService staffService;
     private UserService userService;
     private RoleService roleService;
-    private String firstName;
-    private String lastName;
-    private String emailAddress;
-    private String phoneNumber;
-    private Gender gender;
     private List<Gender> listOfGenders;
     private List<Role> allRoles;
-    private Set<Role> selectedRoles;
+    private Role selectedRole;
     private User savedUser;
+    private boolean edit = false;
 
 
     public StaffFormDialog() {
@@ -54,31 +49,13 @@ public class StaffFormDialog extends DialogForm<Staff> {
 
         this.listOfGenders = Arrays.asList(Gender.values());
         this.allRoles = roleService.getRoles();
-        if (super.model == null) {
-            resetModal();
-        }
+        resetModal();
     }
 
     @Override
     public void persist() throws Exception {
-        User user = new User() ;
-        user.setFirstName(firstName);
-        user.setLastName(lastName);
-        user.setEmailAddress(emailAddress);
-        user.setPhoneNumber(phoneNumber);
-        user.setGender(gender);
-        user.setRecordStatus(RecordStatus.ACTIVE);
-        user.setUsername(emailAddress);
-        user.setClearTextPassword("password123");
-        user.setRoles(selectedRoles);
-
-        savedUser = userService.saveUser(user);
-
-        System.out.println("Saved User: " + savedUser);
 
         model.setStaffStatus(StaffStatus.DEACTIVATED);
-
-        model.setUserAccount(savedUser);
 
         this.staffService.saveStaff(model);
     }
@@ -88,13 +65,16 @@ public class StaffFormDialog extends DialogForm<Staff> {
         super.resetModal();
         super.model = new Staff();
         this.allRoles = roleService.getRoles();
+        this.edit = false;
 
     }
 
     @Override
     public void setFormProperties() {
         super.setFormProperties();
-        this.allRoles = roleService.getRoles();
-
+        this.edit = true;
+//        if(super.model != null){
+////            selectedRoles = model.getUserAccount().getRoles();
+//        }
     }
 }

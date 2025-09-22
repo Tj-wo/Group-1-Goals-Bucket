@@ -5,86 +5,180 @@
                 xmlns:p="http://primefaces.org/ui"
                 template="/pages/californiatemplate/template.xhtml">
 
+    <ui:define name="title">Staff Management</ui:define>
+    <ui:define name="viewname">Staff Management</ui:define>
+
     <ui:define name="content">
-        <div class="layout-wrapper component-panel">
-            <h:form id="staffView">
-                <p:panel header="Staff Management">
-                    <p:growl id="globalGrowl" showDetail="true" life="5000" />
+        <div class="ui-g ui-fluid">
+            <div class="ui-g-12">
+                <h:form id="staffView">
+                    <!-- Statistics Panel -->
+                    <p:outputPanel id="statsPanel">
+                        <div class="p-grid overlay-demo">
+                            <div class="p-col-12 p-md-4">
+                                <div class="card">
+                                    <h:outputText value="Total Staff"/>
+                                    <h2 class="p-text-right">#{staffView.totalStaff}</h2>
+                                </div>
+                            </div>
+                            <div class="p-col-12 p-md-4">
+                                <div class="card">
+                                    <h:outputText value="Male Staff"/>
+                                    <h2 class="p-text-right">#{staffView.maleStaff}</h2>
+                                </div>
+                            </div>
+                            <div class="p-col-12 p-md-4">
+                                <div class="card">
+                                    <h:outputText value="Female Staff"/>
+                                    <h2 class="p-text-right">#{staffView.femaleStaff}</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </p:outputPanel>
 
-                    <p:toolbar styleClass="p-mb-4">
-                        <p:toolbarGroup align="left">
-                            <p:inputText placeholder="Search for staff..." value="#{staffView.searchTerm}">
-                                <p:ajax event="keyup" listener="#{staffView.reloadFilterReset()}" update="staffTable"/>
-                            </p:inputText>
-                            <p:commandButton styleClass="p-ml-2 primary-button" id="searchBtn"
-                                             actionListener="#{staffView.reloadFilterReset()}"
-                                             update="staffView" value="Search"/>
-                        </p:toolbarGroup>
-                        <p:toolbarGroup align="right">
-                            <p:commandButton icon="pi pi-plus" value="Add Staff Member"
-                                             actionListener="#{staffFormDialog.show}">
-                                <f:setPropertyActionListener value="#{null}" target="#{staffFormDialog.model}"/>
-                                <p:ajax event="dialogReturn" listener="#{staffView.reloadFilterReset()}" update="staffTable"/>
-                            </p:commandButton>
-                        </p:toolbarGroup>
-                    </p:toolbar>
+                    <!-- Filters Card -->
+                    <div class="card">
+                        <h:outputText value="Filters" style="font-weight: bold;"/>
+                        <p:growl id="messages" showDetail="true"/>
+                        <div class="p-grid p-mt-2">
+                            <div class="p-col-12 p-md-6 p-lg-3">
+                                <p:inputText id="searchTerm" value="#{staffView.searchTerm}" placeholder="Search name, email...">
+                                    <p:ajax event="keyup" delay="500" update=":staffView:staffTable" listener="#{staffView.reloadFilterReset}"/>
+                                </p:inputText>
+                            </div>
 
-                    <p:dataTable id="staffTable" var="staff" value="#{staffView.dataModels}" widgetVar="staffTable"
-                                 paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}"
-                                 paginator="true" lazy="true" rows="#{staffView.maximumresultsPerpage}"
-                                 emptyMessage="#{staffView.dataEmptyMessage}"
+                            <div class="p-col-12 p-md-6 p-lg-2">
+                                <p:selectOneMenu id="genders" value="#{staffView.selectedGender}" converter="genderConverter">
+                                    <f:selectItem itemLabel="All Genders" itemValue="#{null}"/>
+                                    <f:selectItems value="#{staffView.genders}" var="g" itemLabel="#{g.name()}" itemValue="#{g}"/>
+                                    <p:ajax event="change" update=":staffView:staffTable :staffView:statsPanel" listener="#{staffView.reloadFilterReset}"/>
+                                </p:selectOneMenu>
+                            </div>
+
+                            <div class="p-col-12 p-md-6 p-lg-3">
+                                <p:calendar placeholder="From Date Created" value="#{staffView.createdFrom}" navigator="true" pattern="dd MMM, yyyy">
+                                    <p:ajax event="dateSelect" update=":staffView:staffTable :staffView:statsPanel" listener="#{staffView.reloadFilterReset}"/>
+                                </p:calendar>
+                            </div>
+
+                            <div class="p-col-12 p-md-6 p-lg-3">
+                                <p:calendar placeholder="To Date Created" value="#{staffView.createdTo}" navigator="true" pattern="dd MMM, yyyy">
+                                    <p:ajax event="dateSelect" update=":staffView:staffTable :staffView:statsPanel" listener="#{staffView.reloadFilterReset}"/>
+                                </p:calendar>
+                            </div>
+
+                            <div class="p-col-12 p-md-6 p-lg-1">
+                                <p:commandButton icon="pi pi-search" styleClass="ui-button-success" id="searchBtn"
+                                                 update=":staffView:staffTable :staffView:statsPanel"
+                                                 actionListener="#{staffView.reloadFilterReset}"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p:dataTable id="staffTable" var="staff" value="#{staffView.dataModels}"
+                                 widgetVar="staffTable"
+                                 paginator="true" lazy="true"
+                                 rows="#{staffView.maximumresultsPerpage}"
+                                 emptyMessage="No staff members found."
                                  paginatorPosition="bottom" paginatorAlwaysVisible="false"
-                                 rowIndexVar="row" reflow="true" styleClass="TableAlgnment">
+                                 rowIndexVar="row" reflow="true"
+                                 styleClass="TableAlgnment">
 
+                        <!-- Table Header -->
                         <f:facet name="header">
-                            Staff Members
+                            <div class="p-d-flex p-jc-between">
+                                <div>
+                                    <span class="table-header-text">Staff Members</span>
+                                </div>
+                                <div>
+                                    <p:commandButton value="Add Staff Member"
+                                                     icon="fa fa-plus"
+                                                     styleClass="ui-button-success"
+                                                     process="@this"
+                                                     actionListener="#{staffFormDialog.show}">
+                                        <f:setPropertyActionListener value="#{null}" target="#{staffFormDialog.model}" />
+                                        <p:ajax event="dialogReturn"
+                                                listener="#{staffView.reloadFilterReset}"
+                                                update=":staffView:staffTable :staffView:statsPanel"/>
+                                    </p:commandButton>
+                                </div>
+                            </div>
                         </f:facet>
 
-                        <p:column headerText="First Name">
-                            <h:outputText value="#{staff.userAccount.firstName}"/>
+                        <!-- Columns -->
+                        <p:column width="30" headerText="No.">
+                            <h:outputText value="#{row + 1}" />
                         </p:column>
 
-                        <p:column headerText="Last Name">
-                            <h:outputText value="#{staff.userAccount.lastName}"/>
+                        <p:column headerText="Full Name">
+                            <h:outputText value="#{staff.firstName} #{staff.lastName}" />
                         </p:column>
 
                         <p:column headerText="Email Address">
-                            <h:outputText value="#{staff.userAccount.emailAddress}"/>
-                        </p:column>
-
-                        <p:column headerText="Phone Number">
-                            <h:outputText value="#{staff.userAccount.phoneNumber}"/>
+                            <h:outputText value="#{staff.emailAddress}" />
                         </p:column>
 
                         <p:column headerText="Gender">
-                            <h:outputText value="#{staff.userAccount.gender != null ? staff.userAccount.gender.name() : 'N/A'}"/>
+                            <h:outputText value="#{staff.gender.name()}" />
                         </p:column>
 
                         <p:column headerText="Account Status">
-                            <p:tag value="#{staff.userAccount != null and staff.userAccount.recordStatus == 'ACTIVE' ? 'Active' : 'Inactive'}" rounded="true"
-                                   styleClass="#{staff.userAccount != null and staff.userAccount.recordStatus == 'ACTIVE' ? 'ui-tag-success' : 'ui-tag-warning'}"/>
+                            <p:tag value="#{staff.staffStatus == 'ACTIVE' ? 'Active' : 'Deactivated'}"
+                                   rounded="true"
+                                   styleClass="#{staff.staffStatus == 'ACTIVE' ? 'ui-tag-success' : 'ui-tag-warning'}" />
                         </p:column>
 
-                        <p:column headerText="Actions">
-                            <p:commandButton icon="pi pi-pencil" styleClass="ui-button-help" immediate="true"
+                        <!-- Actions Column -->
+                        <p:column headerText="Action" width="140" exportable="false" style="text-align:center">
+                            <!-- Edit Button -->
+                            <p:commandButton icon="fa fa-pencil"
+                                             styleClass="ui-button-secondary ui-button-flat"
                                              actionListener="#{staffFormDialog.show}">
-                                <f:setPropertyActionListener value="#{staff}" target="#{staffFormDialog.model}"/>
+                                <f:setPropertyActionListener value="#{staff}" target="#{staffFormDialog.model}" />
+                                <p:ajax event="dialogReturn"
+                                        listener="#{staffView.reloadFilterReset}"
+                                        update=":staffView:staffTable :staffView:statsPanel"/>
                             </p:commandButton>
 
-                            
-                            <p:commandButton value="Activate Account" actionListener="#{staffView.activateAccount(staff)}"
-                                             update="staffTable" process="@this"
-                                             rendered="#{staff.userAccount == null or staff.userAccount.recordStatus != 'ACTIVE'}"
-                                             styleClass="ui-button-success p-ml-2"/>
+                            <!-- Activate -->
+                            <p:commandButton icon="fa fa-check" title="Activate"
+                                             rendered="#{staff.staffStatus != 'ACTIVE'}"
+                                             styleClass="ui-button-info ui-button-flat"
+                                             style="margin-left:5px"
+                                             actionListener="#{staffView.activateAccount(staff)}"
+                                             update=":staffView:staffTable :staffView:messages"/>
 
-                            
-                            <p:commandButton value="Deactivate Account" actionListener="#{staffView.deactivateAccount(staff)}"
-                                             update="staffTable" process="@this"
-                                             styleClass="ui-button-danger p-ml-2"/>
+                            <!-- Deactivate -->
+                            <p:commandButton icon="fa fa-times" title="Deactivate"
+                                             rendered="#{staff.staffStatus == 'ACTIVE'}"
+                                             styleClass="ui-button-warning ui-button-flat"
+                                             style="margin-left:5px"
+                                             actionListener="#{staffView.deactivateAccount(staff)}"
+                                             update=":staffView:staffTable :staffView:messages"/>
+
+                            <!-- Delete -->
+                            <p:commandButton icon="fa fa-trash" title="Delete"
+                                             styleClass="ui-button-secondary ui-button-flat"
+                                             style="margin-left:5px"
+                                             actionListener="#{staffView.deleteStaff(staff)}"
+                                             update=":staffView:staffTable :staffView:statsPanel">
+                                <p:confirm header="Confirmation"
+                                           message="You are about to delete staff member '#{staff.firstName} #{staff.lastName}'. Do you wish to continue?"
+                                           icon="ui-icon-alert" />
+                            </p:commandButton>
                         </p:column>
                     </p:dataTable>
-                </p:panel>
-            </h:form>
+
+                    <p:blockUI block="staffView" trigger="searchBtn">
+                        <i class="pi pi-spin pi-spinner" style="font-size: 3rem"></i>
+                    </p:blockUI>
+
+                    <p:confirmDialog global="true" showEffect="fade" hideEffect="fade" responsive="true" width="350">
+                        <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no ui-button-secondary"/>
+                        <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes ui-button-danger"/>
+                    </p:confirmDialog>
+                </h:form>
+            </div>
         </div>
     </ui:define>
 </ui:composition>

@@ -12,6 +12,18 @@
         <jackson.version>2.12.1</jackson.version>
     </properties>
     <dependencies>
+<!--        for the email dependency -->
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+            <version>1.6.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
+            <version>1.4.7</version>
+        </dependency>
         <!-- Custom com-platform models Dependencies -->
         <dependency>
             <groupId>org.pahappa.systems.kpiTracker</groupId>

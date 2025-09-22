@@ -20,6 +20,11 @@
 	</render-kit>
 
 	<navigation-rule>
+		<!-- <from-view-id>/pages/staff/StaffFormDialog.xhtml</from-view-id>
+		<navigation-case>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/pages/staff/StaffView.xhtml</to-view-id>
+		</navigation-case> -->
 	</navigation-rule>
 	<application>
 		<action-listener>org.primefaces.application.DialogActionListener</action-listener>

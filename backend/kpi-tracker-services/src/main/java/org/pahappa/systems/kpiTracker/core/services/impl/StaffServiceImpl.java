@@ -1,14 +1,15 @@
 package org.pahappa.systems.kpiTracker.core.services.impl;
 
 import com.googlecode.genericdao.search.Search;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.pahappa.systems.kpiTracker.core.dao.StaffDao;
+import org.pahappa.systems.kpiTracker.core.services.EmailNotificationService;
+import org.pahappa.systems.kpiTracker.core.services.MailService;
 import org.pahappa.systems.kpiTracker.core.services.StaffService;
 import org.pahappa.systems.kpiTracker.models.constants.StaffStatus;
 import org.pahappa.systems.kpiTracker.models.staff.Staff;
+import org.pahappa.systems.kpiTracker.utils.SecurePasswordGenerator;
 import org.pahappa.systems.kpiTracker.utils.Validate;
-import org.pahappa.systems.kpiTracker.core.services.MailService;
 import org.sers.webutils.model.RecordStatus;
 import org.sers.webutils.model.exception.OperationFailedException;
 import org.sers.webutils.model.exception.ValidationFailedException;
@@ -16,20 +17,17 @@ import org.sers.webutils.model.security.Role;
 import org.sers.webutils.model.security.User;
 import org.sers.webutils.server.core.service.RoleService;
 import org.sers.webutils.server.core.service.UserService;
-import org.sers.webutils.server.core.utils.MailUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.Date;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service("staffService")
 @Transactional
 public class StaffServiceImpl extends GenericServiceImpl<Staff> implements StaffService {
+
+    private static final Logger logger = LoggerFactory.getLogger(StaffServiceImpl.class);
 
     @Autowired
     private StaffDao staffDao;
@@ -40,76 +38,157 @@ public class StaffServiceImpl extends GenericServiceImpl<Staff> implements Staff
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private MailService mailService;
+
+    @Autowired
+    private EmailNotificationService emailNotificationService;
+
+    // =====================
+    // SAVE STAFF OPERATIONS
+    // =====================
 
     @Override
     public Staff saveStaff(Staff staff) throws ValidationFailedException {
         Validate.notNull(staff, "Staff details cannot be null");
-        return super.merge(staff);
+
+        Staff savedStaff = super.merge(staff);
+        sendWelcomeEmailIfApplicable(savedStaff, null);
+
+        return savedStaff;
     }
 
-    private boolean isEmailTaken(String email, String staffId) {
-        Search search = new Search(Staff.class);
-        search.addFilterEqual("emailAddress", email);
-        if (StringUtils.isNotBlank(staffId)) {
-            search.addFilterNotEqual("id", staffId);
-        }
-        return staffDao.count(search) > 0;
+    public Staff saveStaff(Staff staff, String generatedPassword) throws ValidationFailedException {
+        Validate.notNull(staff, "Staff details cannot be null");
+
+        Staff savedStaff = super.merge(staff);
+        sendWelcomeEmailIfApplicable(savedStaff, generatedPassword);
+
+        return savedStaff;
     }
+
+    /**
+     * Helper method to send welcome email to the staff member
+     */
+    private void sendWelcomeEmailIfApplicable(Staff staff, String generatedPassword) {
+        try {
+            if (staff != null && staff.getUserAccount() != null) {
+                User userAccount = staff.getUserAccount();
+                String email = userAccount.getEmailAddress();
+                String firstName = userAccount.getFirstName();
+                String lastName = userAccount.getLastName();
+
+                if (StringUtils.isNotBlank(email) && StringUtils.isNotBlank(firstName)) {
+                    String fullName = firstName + (StringUtils.isNotBlank(lastName) ? " " + lastName : "");
+
+                    // Generate password if not provided
+                    String tempPassword = generatedPassword;
+                    if (StringUtils.isBlank(tempPassword)) {
+                        tempPassword = SecurePasswordGenerator.generateTemporaryPassword();
+                        userAccount.setClearTextPassword(tempPassword);
+                        userService.saveUser(userAccount);
+                    }
+
+                    // Send welcome email
+                    emailNotificationService.sendWelcomeEmail(email, fullName, getApplicationBaseUrl(), tempPassword);
+                    logger.info("Welcome email sent to: {}", email);
+                } else {
+                    logger.warn("Cannot send welcome email - missing email or name for staff ID: {}", staff.getId());
+                }
+            } else {
+                logger.warn("Cannot send welcome email - staff has no user account");
+            }
+        } catch (Exception e) {
+            logger.error("Failed to send welcome email for staff ID: {}", 
+                         (staff != null ? staff.getId() : "unknown"), e);
+        }
+    }
+
+    private String getApplicationBaseUrl() {
+        return "http://localhost:8080/kpi-tracker";
+    }
+
+    // ==========================
+    // USER ACCOUNT ACTIVATION
+    // ==========================
 
     @Override
     public User activateUserAccount(Staff staff) throws ValidationFailedException, OperationFailedException {
         Validate.notNull(staff, "Staff member not specified");
-        Validate.notNull(staff.getUserAccount(), "Staff member does not have a user account.");
-        staff.setStaffStatus(StaffStatus.ACTIVE);
 
-        User user = new User();
-
-        user.setFirstName(staff.getFirstName());
-        user.setLastName(staff.getLastName());
-        user.setEmailAddress(staff.getEmailAddress());
-        user.setUsername(staff.getEmailAddress());
-        user.setPhoneNumber(staff.getPhoneNumber());
-        user.setGender(staff.getGender());
-        user.setPassword("password123");
-        user.setRoles(Collections.singleton(getNormalUserRole()));
-
-        if (user != null) {
-            user.setRecordStatus(RecordStatus.ACTIVE);
-            userService.saveUser(user);
+        if (staff.getUserAccount() == null) {
+            throw new ValidationFailedException("Staff member does not have a user account to activate.");
         }
 
-        this.staffDao.update(staff);
+        User userAccount = staff.getUserAccount();
+        userAccount.setRecordStatus(RecordStatus.ACTIVE);
+        userAccount = userService.saveUser(userAccount);
 
-        return user;
+        staff.setActive(true);
+        staff.setStaffStatus(StaffStatus.ACTIVE);
+        super.merge(staff);
+
+        sendWelcomeEmailIfApplicable(staff, null);
+        return userAccount;
     }
 
-    public Role getNormalUserRole() {
-        return (roleService.getRoleByName("Normal User"));
-    }
+    // ==========================
+    // USER ACCOUNT DEACTIVATION
+    // ==========================
 
     @Override
     public void deactivateUserAccount(Staff staff) throws ValidationFailedException, OperationFailedException {
         Validate.notNull(staff, "Staff member not specified");
         Validate.notNull(staff.getUserAccount(), "Staff member does not have a user account.");
 
-        staff.setStaffStatus(StaffStatus.DEACTIVATED);
-        this.staffDao.update(staff);
+        User userAccount = staff.getUserAccount();
+        userAccount.setRecordStatus(RecordStatus.DELETED);
+        userService.saveUser(userAccount);
 
-        User user = staff.getUserAccount();
-        if (user != null) {
-            user.setRecordStatus(RecordStatus.ACTIVE_LOCKED);
-            userService.saveUser(user);
-        }
+        staff.setActive(false);
+        staff.setStaffStatus(StaffStatus.DEACTIVATED);
+        super.merge(staff);
     }
+
+    // ==========================
+    // CHECK IF STAFF CAN ACCESS
+    // ==========================
+
+    @Override
+    public boolean canStaffAccessSystem(Staff staff) {
+        if (staff == null) return false;
+
+        return staff.isActive() &&
+               staff.getStaffStatus() == StaffStatus.ACTIVE &&
+               staff.getUserAccount() != null &&
+               staff.getUserAccount().getRecordStatus() == RecordStatus.ACTIVE;
+    }
+
+    // ==========================
+    // OTHER OPERATIONS
+    // ==========================
 
     @Override
     public boolean isDeletable(Staff instance) throws OperationFailedException {
-        // You can add logic here to prevent deletion if the staff has other dependencies
-        return true;
+        return true; // Extend with business rules if needed
     }
 
     @Override
     public Staff saveInstance(Staff instance) throws ValidationFailedException, OperationFailedException {
         return saveStaff(instance);
+    }
+
+    private boolean isEmailTaken(String email, String staffId) {
+        Search search = new Search(Staff.class);
+        search.addFilterEqual("userAccount.emailAddress", email);
+        search.addFilterEqual("userAccount.recordStatus", RecordStatus.ACTIVE); // Only active users
+        if (StringUtils.isNotBlank(staffId)) {
+            search.addFilterNotEqual("id", staffId);
+        }
+        return staffDao.count(search) > 0;
+    }
+
+    public Role getNormalUserRole() {
+        return roleService.getRoleByName("Normal User");
     }
 }

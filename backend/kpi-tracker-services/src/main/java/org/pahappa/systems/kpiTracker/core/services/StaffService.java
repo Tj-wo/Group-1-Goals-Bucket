@@ -6,10 +6,13 @@ import org.sers.webutils.model.exception.ValidationFailedException;
 import org.sers.webutils.model.security.User;
 
 public interface StaffService extends GenericService<Staff> {
-
     Staff saveStaff(Staff staff) throws ValidationFailedException;
+
+    Staff saveStaff(Staff staff, String generatedPassword) throws ValidationFailedException;
 
     User activateUserAccount(Staff staff) throws ValidationFailedException, OperationFailedException;
 
     void deactivateUserAccount(Staff staff) throws ValidationFailedException, OperationFailedException;
+
+    boolean canStaffAccessSystem(Staff staff);
 }

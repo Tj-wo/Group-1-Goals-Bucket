@@ -20,7 +20,8 @@ import org.sers.webutils.server.core.utils.ApplicationContextProvider;
 import javax.annotation.PostConstruct;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 
 @ManagedBean(name = "staffFormDialog")
 @SessionScoped
@@ -29,6 +30,7 @@ import java.util.*;
 public class StaffFormDialog extends DialogForm<Staff> {
 
     private static final long serialVersionUID = 1L;
+
     private StaffService staffService;
     private UserService userService;
     private RoleService roleService;
@@ -51,9 +53,7 @@ public class StaffFormDialog extends DialogForm<Staff> {
 
         this.listOfGenders = Arrays.asList(Gender.values());
         this.allRoles = roleService.getRoles();
-        if (super.model == null) {
-            resetModal();
-        }
+        resetModal();
     }
 
     @Override
@@ -62,20 +62,22 @@ public class StaffFormDialog extends DialogForm<Staff> {
             // Update existing staff
             this.staffService.saveStaff(super.model);
         } else {
-            // Create new staff with user account
+            // Create new staff with a user account
             createNewStaff();
         }
     }
 
+    /**
+     * Creates a new staff record and associated user account.
+     */
     private void createNewStaff() throws Exception {
-        // Ensure we have a user account to work with
         if (model.getUserAccount() == null) {
-            throw new ValidationFailedException("User account is required for staff creation");
+            throw new ValidationFailedException("User account is required for staff creation.");
         }
 
         User user = model.getUserAccount();
 
-        // Generate a secure random password for the new user
+        // Generate a secure random password
         generatedPassword = SecurePasswordGenerator.generateTemporaryPassword();
         user.setClearTextPassword(generatedPassword);
         user.setRecordStatus(RecordStatus.ACTIVE);
@@ -84,12 +86,12 @@ public class StaffFormDialog extends DialogForm<Staff> {
         savedUser = userService.saveUser(user);
         System.out.println("Saved User: " + savedUser);
 
-        // Set up staff
+        // Set staff properties
         model.setStaffStatus(StaffStatus.DEACTIVATED);
         model.setActive(true);
         model.setUserAccount(savedUser);
 
-        // Save staff with the generated password for welcome email
+        // Save staff
         this.staffService.saveStaff(super.model, generatedPassword);
     }
 
@@ -97,10 +99,10 @@ public class StaffFormDialog extends DialogForm<Staff> {
     public void resetModal() {
         super.resetModal();
         super.model = new Staff();
-        setEdit(false);
+        this.edit = false;
         this.allRoles = roleService.getRoles();
 
-        // Initialize a new user account for the staff
+        // Create a new default user for the staff
         User newUser = new User();
         newUser.setRecordStatus(RecordStatus.ACTIVE);
         super.model.setUserAccount(newUser);
@@ -125,5 +127,4 @@ public class StaffFormDialog extends DialogForm<Staff> {
             setEdit(false);
         }
     }
-
 }

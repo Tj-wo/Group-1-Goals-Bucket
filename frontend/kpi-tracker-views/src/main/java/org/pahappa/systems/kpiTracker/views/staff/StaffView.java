@@ -12,15 +12,19 @@ import org.primefaces.model.FilterMeta;
 import org.primefaces.model.SortMeta;
 import org.sers.webutils.client.views.presenters.PaginatedTableView;
 import org.sers.webutils.client.views.presenters.ViewPath;
-import org.sers.webutils.model.exception.ValidationFailedException;
+import org.sers.webutils.model.Gender;
+import org.sers.webutils.model.RecordStatus; // Import the RecordStatus enum
 import org.sers.webutils.model.exception.OperationFailedException;
+import org.sers.webutils.model.exception.ValidationFailedException;
 import org.sers.webutils.server.core.service.excel.reports.ExcelReport;
 import org.sers.webutils.server.core.utils.ApplicationContextProvider;
 
 import javax.annotation.PostConstruct;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -34,17 +38,32 @@ public class StaffView extends PaginatedTableView<Staff, StaffService, StaffServ
     private static final long serialVersionUID = 1L;
     private StaffService staffService;
     private Search search;
+
+    // Filters Properties
     private String searchTerm;
+    private Gender selectedGender;
+    private Date createdFrom;
+    private Date createdTo;
+    private List<Gender> genders;
+
+    // Statistics Properties
+    private long totalStaff;
+    private long maleStaff;
+    private long femaleStaff;
 
     @PostConstruct
     public void init() {
         this.staffService = ApplicationContextProvider.getBean(StaffService.class);
         super.setMaximumresultsPerpage(10);
+        this.genders = Arrays.asList(Gender.values());
         this.reloadFilterReset();
     }
 
     private void buildSearch() {
         this.search = new Search();
+        // *** FIX 1: Use the RecordStatus enum instead of the string "ACTIVE" ***
+        this.search.addFilterEqual("recordStatus", RecordStatus.ACTIVE);
+
         if (StringUtils.isNotBlank(searchTerm)) {
             search.addFilterOr(
                     com.googlecode.genericdao.search.Filter.ilike("firstName", "%" + searchTerm + "%"),
@@ -52,6 +71,34 @@ public class StaffView extends PaginatedTableView<Staff, StaffService, StaffServ
                     com.googlecode.genericdao.search.Filter.ilike("emailAddress", "%" + searchTerm + "%")
             );
         }
+
+        if (this.selectedGender != null) {
+            this.search.addFilterEqual("gender", this.selectedGender);
+        }
+
+        if (this.createdFrom != null) {
+            this.search.addFilterGreaterOrEqual("dateCreated", this.createdFrom);
+        }
+        if (this.createdTo != null) {
+            this.search.addFilterLessOrEqual("dateCreated", this.createdTo);
+        }
+    }
+
+    private void updateStatistics() {
+        // *** FIX 2: Corrected the logic to calculate stats for all active staff ***
+        Search statsSearch = new Search(Staff.class);
+        statsSearch.addFilterEqual("recordStatus", RecordStatus.ACTIVE);
+        this.totalStaff = staffService.countInstances(statsSearch);
+
+        statsSearch.clearFilters(); // Clear previous filters before adding new ones
+        statsSearch.addFilterEqual("recordStatus", RecordStatus.ACTIVE);
+        statsSearch.addFilterEqual("gender", Gender.MALE);
+        this.maleStaff = staffService.countInstances(statsSearch);
+
+        statsSearch.clearFilters();
+        statsSearch.addFilterEqual("recordStatus", RecordStatus.ACTIVE);
+        statsSearch.addFilterEqual("gender", Gender.FEMALE);
+        this.femaleStaff = staffService.countInstances(statsSearch);
     }
 
     @Override
@@ -64,6 +111,7 @@ public class StaffView extends PaginatedTableView<Staff, StaffService, StaffServ
     @Override
     public void reloadFilterReset() {
         buildSearch();
+        updateStatistics();
         super.setTotalRecords(staffService.countInstances(search));
         try {
             super.reloadFilterReset();
@@ -72,10 +120,21 @@ public class StaffView extends PaginatedTableView<Staff, StaffService, StaffServ
         }
     }
 
+    public void deleteStaff(Staff staff) {
+        try {
+            // Assuming your service has a method to properly delete or mark as deleted
+            this.staffService.deleteInstance(staff);
+            UiUtils.showMessageBox("Success", "Staff member has been deleted.");
+            reloadFilterReset();
+        } catch (OperationFailedException e) {
+            UiUtils.ComposeFailure("Action Failed", e.getMessage());
+        }
+    }
+
     public void activateAccount(Staff staff) {
         try {
             staffService.activateUserAccount(staff);
-            UiUtils.showMessageBox("Success", "User account activated. An email with credentials has been sent.");
+            UiUtils.showMessageBox("Success", "User account activated.");
             reloadFilterReset();
         } catch (ValidationFailedException | OperationFailedException e) {
             UiUtils.ComposeFailure("Action Failed", e.getMessage());
@@ -93,17 +152,19 @@ public class StaffView extends PaginatedTableView<Staff, StaffService, StaffServ
     }
 
     @Override
-    public List<ExcelReport> getExcelReportModels() {
-        return Collections.emptyList();
-    }
+    public List<ExcelReport> getExcelReportModels() { return Collections.emptyList(); }
 
     @Override
-    public String getFileName() {
-        return null;
-    }
+    public String getFileName() { return null; }
 
     @Override
     public List<Staff> load(int first, int pageSize, Map<String, SortMeta> sortBy, Map<String, FilterMeta> filterBy) {
+        // This should delegate to reloadFromDB for lazy loading to work correctly
+        try {
+            reloadFromDB(first, pageSize, null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return getDataModels();
     }
 }

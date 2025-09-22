@@ -446,7 +446,28 @@
                 </div>
 
                 <!-- Check authentication status on page load -->
-                <p:ajax event="load" listener="#{loginController.checkAuthenticationStatus()}" update="messages" />
+                <h:outputScript>
+                    // Check for authentication errors when page loads
+                    if (window.location.search.includes('error=true')) {
+                        // Show error message
+                        var messagesDiv = document.getElementById('messages');
+                        if (messagesDiv) {
+                            messagesDiv.innerHTML = '<div class="ui-messages ui-messages-error" style="display: block;"><div class="ui-message ui-message-error"><span class="ui-message-icon pi pi-times"></span>Invalid email or password. Please check your credentials and try again.<span class="ui-message-close">×</span></div></div>';
+                        }
+                    } else if (window.location.search.includes('logout=true')) {
+                        // Show logout message
+                        var messagesDiv = document.getElementById('messages');
+                        if (messagesDiv) {
+                            messagesDiv.innerHTML = '<div class="ui-messages ui-messages-info" style="display: block;"><div class="ui-message ui-message-info"><span class="ui-message-icon pi pi-check"></span>You have been successfully logged out. Thank you for using KPI Tracker!<span class="ui-message-close">×</span></div></div>';
+                        }
+                    } else if (window.location.search.includes('expired=true')) {
+                        // Show expired message
+                        var messagesDiv = document.getElementById('messages');
+                        if (messagesDiv) {
+                            messagesDiv.innerHTML = '<div class="ui-messages ui-messages-warn" style="display: block;"><div class="ui-message ui-message-warn"><span class="ui-message-icon pi pi-exclamation-triangle"></span>Your session has expired. Please log in again to continue.<span class="ui-message-close">×</span></div></div>';
+                        }
+                    }
+                </h:outputScript>
 
                 <div class="login-header">
                     <h2>Sign In </h2>

@@ -60,24 +60,17 @@ public class StaffServiceImpl extends GenericServiceImpl<Staff> implements Staff
     public User activateUserAccount(Staff staff) throws ValidationFailedException, OperationFailedException {
         Validate.notNull(staff, "Staff member not specified");
         Validate.notNull(staff.getUserAccount(), "Staff member does not have a user account.");
-        staff.setStaffStatus(StaffStatus.ACTIVE);
+        User user = staff.getUserAccount();
 
-        User user = new User();
-
-        user.setFirstName(staff.getFirstName());
-        user.setLastName(staff.getLastName());
-        user.setEmailAddress(staff.getEmailAddress());
-        user.setUsername(staff.getEmailAddress());
-        user.setPhoneNumber(staff.getPhoneNumber());
-        user.setGender(staff.getGender());
-        user.setPassword("password123");
-        user.setRoles(Collections.singleton(getNormalUserRole()));
-
-        if (user != null) {
-            user.setRecordStatus(RecordStatus.ACTIVE);
-            userService.saveUser(user);
+        if (user.getRecordStatus() == RecordStatus.ACTIVE) {
+            throw new OperationFailedException("This user account is already active.");
         }
 
+        user.setRecordStatus(RecordStatus.ACTIVE);
+
+        userService.saveUser(user);
+
+        staff.setStaffStatus(StaffStatus.ACTIVE);
         this.staffDao.update(staff);
 
         return user;

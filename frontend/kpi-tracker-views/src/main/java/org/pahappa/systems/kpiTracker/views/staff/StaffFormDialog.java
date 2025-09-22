@@ -2,14 +2,17 @@ package org.pahappa.systems.kpiTracker.views.staff;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang.RandomStringUtils;
 import org.pahappa.systems.kpiTracker.core.services.StaffService;
 import org.pahappa.systems.kpiTracker.models.constants.StaffStatus;
 import org.pahappa.systems.kpiTracker.models.staff.Staff;
 import org.pahappa.systems.kpiTracker.security.HyperLinks;
 import org.pahappa.systems.kpiTracker.views.dialogs.DialogForm;
 import org.sers.webutils.model.Gender;
+import org.sers.webutils.model.RecordStatus;
 import org.sers.webutils.model.security.Role;
 import org.sers.webutils.model.security.User;
+import org.sers.webutils.server.core.security.util.CustomSecurityUtil;
 import org.sers.webutils.server.core.service.RoleService;
 import org.sers.webutils.server.core.service.UserService;
 import org.sers.webutils.server.core.utils.ApplicationContextProvider;
@@ -55,8 +58,26 @@ public class StaffFormDialog extends DialogForm<Staff> {
     @Override
     public void persist() throws Exception {
 
-        model.setStaffStatus(StaffStatus.DEACTIVATED);
+        User userAccount = new User();
+        userAccount.setFirstName(model.getFirstName());
+        userAccount.setLastName(model.getLastName());
+        userAccount.setEmailAddress(model.getEmailAddress());
+        userAccount.setUsername(model.getEmailAddress());
+        userAccount.setPhoneNumber(model.getPhoneNumber());
+        userAccount.setGender(model.getGender());
+        userAccount.setRecordStatus(RecordStatus.ACTIVE_LOCKED);
+        userAccount.setSalt(UUID.randomUUID().toString());
+        userAccount.setClearTextPassword("password123");
 
+        CustomSecurityUtil.prepUserCredentials(userAccount);
+
+        if (this.selectedRole != null) {
+            userAccount.setRoles(new HashSet<>(Collections.singletonList(this.selectedRole)));
+        }
+
+        model.setUserAccount(userAccount);
+
+        model.setStaffStatus(StaffStatus.DEACTIVATED);
         this.staffService.saveStaff(model);
     }
 

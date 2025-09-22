@@ -13,4 +13,6 @@ public @interface SystemPermission {
 
 	String description() default "Not supplied";
 
+	String category() default "General";
+
 }

@@ -19,6 +19,7 @@ public class PermissionInterpreter {
 				Permission permission = new Permission();
 				permission.setName(permissionAnnotation.name());
 				permission.setDescription(permissionAnnotation.description());
+				permission.setCustomPropOne(permissionAnnotation.category());
 				permissions.add(permission);
 			}
 		}

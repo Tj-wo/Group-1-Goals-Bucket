@@ -1,0 +1,62 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/pages/californiatemplate/template.xhtml">
+
+    <ui:define name="content">
+        <f:metadata>
+            <f:viewParam name="roleId" value="#{ permissionsView .roleId}" />
+        </f:metadata>
+
+        <h:form id="permissionsForm">
+            <p:growl id="messages" showDetail="true" life="6000" />
+
+            <div class="card">
+                <div class="p-d-flex p-jc-between p-ai-center" style="margin-bottom: 20px;">
+                    <p:commandButton value="Back" icon="fa fa-arrow-left" immediate="true" action="#{ permissionsView .redirectToRolesView()}" />
+                    <h2 style="font-weight: bold;">Permissions for: #{ permissionsView .selectedRole.name}</h2>
+                    <div></div>
+                </div>
+                <hr/>
+
+                <p:dataGrid id="permissionGrid" var="group" value="#{ permissionsView .rolePermissionMapList}" columns="3" layout="grid"
+                            emptyMessage="No permissions found.">
+
+                    <p:column>
+                        <h:panelGroup id="permissionGroupPanel" layout="block">
+                            <div class="card">
+                                <h5 class="p-d-flex p-ai-center">
+                                    <h:outputText value="#{group.category}" style="font-weight: bold;"/>
+                                    <p:spacer width="10" />
+                                    <p:selectBooleanCheckbox id="selectAllCheckbox" value="#{group.categorySelected}">
+                                        <p:ajax listener="#{ permissionsView .selectAllForCategory(group)}"
+                                                update="permissionGrid" />
+                                    </p:selectBooleanCheckbox>
+                                    <h:outputLabel for="selectAllCheckbox" value="Select All" style="font-style: italic;"/>
+                                </h5>
+                                <hr/>
+
+                                <p:selectManyCheckbox id="permissions-checkbox-#{group.category.replace(' ', '_').replace('.', '_')}"
+                                                      value="#{group.selectedPermissions}" converter="permissionConverter" layout="pageDirection">
+                                    <f:selectItems value="#{group.permissions}" var="item" itemLabel="#{item.name}" itemValue="#{item}"/>
+                                    <p:ajax event="change" listener="#{ permissionsView .updateCategorySelection(group)}"
+                                            update="selectAllCheckbox" />
+                                </p:selectManyCheckbox>
+                            </div>
+                        </h:panelGroup>
+                    </p:column>
+                </p:dataGrid>
+
+                <div class="p-d-flex p-jc-end p-mt-4">
+                    <p:commandButton value="Cancel" styleClass="ui-button-secondary"
+                                     immediate="true"
+                                     action="#{ permissionsView .redirectToRolesView()}" />
+                    <p:commandButton value="Save" icon="fa fa-save" action="#{ permissionsView .persist()}"
+                                     process="@this" update="@form" styleClass="p-ml-2"/>
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

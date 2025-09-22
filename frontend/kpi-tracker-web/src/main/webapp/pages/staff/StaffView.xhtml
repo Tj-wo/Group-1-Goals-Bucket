@@ -141,7 +141,7 @@
                             </p:commandButton>
 
                             <!-- Activate -->
-                            <p:commandButton icon="fa fa-check" title="Activate"
+                            <p:commandButton icon="fa fa-check" title="Activate User Account"
                                              rendered="#{staff.staffStatus != 'ACTIVE'}"
                                              styleClass="ui-button-info ui-button-flat"
                                              style="margin-left:5px"
@@ -149,7 +149,7 @@
                                              update=":staffView:staffTable :staffView:messages"/>
 
                             <!-- Deactivate -->
-                            <p:commandButton icon="fa fa-times" title="Deactivate"
+                            <p:commandButton icon="fa fa-times" title="Deactivate User account"
                                              rendered="#{staff.staffStatus == 'ACTIVE'}"
                                              styleClass="ui-button-warning ui-button-flat"
                                              style="margin-left:5px"

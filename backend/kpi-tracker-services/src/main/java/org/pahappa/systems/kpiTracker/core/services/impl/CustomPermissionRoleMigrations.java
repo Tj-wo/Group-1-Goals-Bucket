@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 
 @Service
 @Transactional
@@ -65,5 +66,23 @@ public class CustomPermissionRoleMigrations {
 			}
 		}
 		
+	}
+
+	@Migration(orderNumber = 4)
+	public void assignAllPermissionsToAdminRole() {
+		try {
+			Role adminRole = roleDao.searchUniqueByPropertyEqual("name", Role.DEFAULT_ADMIN_ROLE);
+			if (adminRole != null) {
+				List<Permission> allPermissions = permissionService.getPermissions();
+				adminRole.setPermissions(new HashSet<>(allPermissions));
+				roleDao.save(adminRole);
+				System.out.println("Assigned all permissions to the Administrator role.");
+			} else {
+				System.out.println("Administrator role not found, skipping permission assignment. It might be created by a later migration.");
+			}
+		} catch (Exception e) {
+			System.err.println("Failed to assign permissions to admin role: " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
 }

@@ -1,5 +1,6 @@
 package org.pahappa.systems.kpiTracker.views.users;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -108,7 +109,16 @@ public class RolesView extends PaginatedTableView<Role, RolesView, RolesView> {
 	public void saveSelectedRole() throws ValidationFailedException {
 		System.err.println("------saving role---------" + this.selectedRole);
 		try {
-			this.selectedRole.setPermissions(this.selectedPermissionsList);
+
+			Set<Permission> currentRolePermissions = this.selectedRole.getPermissions();
+			if (currentRolePermissions == null) {
+				currentRolePermissions = new HashSet<>();
+				this.selectedRole.setPermissions(currentRolePermissions);
+			}
+
+			currentRolePermissions.clear();
+			currentRolePermissions.addAll(this.selectedPermissionsList);
+
 			roleService.saveRole(this.selectedRole);
 			UiUtils.showMessageBox("Action Success!", "Role updated");
 		} catch (Exception e) {
@@ -137,5 +147,9 @@ public class RolesView extends PaginatedTableView<Role, RolesView, RolesView> {
 			this.selectedPermissionsList = new HashSet<Permission>();
 			this.selectedRole = new Role();
 		}
+	}
+
+	public String redirectToPermissionsView() throws IOException {
+		return HyperLinks.PERMISSION_VIEW;
 	}
 }

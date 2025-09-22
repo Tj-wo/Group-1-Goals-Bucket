@@ -2,6 +2,7 @@ package org.pahappa.systems.kpiTracker.views.staff;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang.RandomStringUtils;
 import org.pahappa.systems.kpiTracker.core.services.StaffService;
 import org.pahappa.systems.kpiTracker.models.constants.StaffStatus;
 import org.pahappa.systems.kpiTracker.models.staff.Staff;
@@ -13,6 +14,7 @@ import org.sers.webutils.model.RecordStatus;
 import org.sers.webutils.model.exception.ValidationFailedException;
 import org.sers.webutils.model.security.Role;
 import org.sers.webutils.model.security.User;
+import org.sers.webutils.server.core.security.util.CustomSecurityUtil;
 import org.sers.webutils.server.core.service.RoleService;
 import org.sers.webutils.server.core.service.UserService;
 import org.sers.webutils.server.core.utils.ApplicationContextProvider;
@@ -21,6 +23,8 @@ import javax.annotation.PostConstruct;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 @ManagedBean(name = "staffFormDialog")
@@ -37,6 +41,7 @@ public class StaffFormDialog extends DialogForm<Staff> {
 
     private List<Gender> listOfGenders;
     private List<Role> allRoles;
+    private Role selectedRole; // Added from ft-permission&roles branch
     private User savedUser;
     private String generatedPassword;
     private boolean edit;
@@ -80,18 +85,22 @@ public class StaffFormDialog extends DialogForm<Staff> {
         // Generate a secure random password
         generatedPassword = SecurePasswordGenerator.generateTemporaryPassword();
         user.setClearTextPassword(generatedPassword);
-        user.setRecordStatus(RecordStatus.ACTIVE);
+        user.setRecordStatus(RecordStatus.ACTIVE_LOCKED);
         user.setUsername(user.getEmailAddress());
 
+        // Set the selected role
+        if (this.selectedRole != null) {
+            user.setRoles(new HashSet<>(Collections.singletonList(this.selectedRole)));
+        }
+
+        // Save the user account
         savedUser = userService.saveUser(user);
-        System.out.println("Saved User: " + savedUser);
 
         // Set staff properties
         model.setStaffStatus(StaffStatus.DEACTIVATED);
-        model.setActive(true);
         model.setUserAccount(savedUser);
 
-        // Save staff
+        // Save the staff record and send welcome email
         this.staffService.saveStaff(super.model, generatedPassword);
     }
 
@@ -100,6 +109,7 @@ public class StaffFormDialog extends DialogForm<Staff> {
         super.resetModal();
         super.model = new Staff();
         this.edit = false;
+        this.selectedRole = null;
         this.allRoles = roleService.getRoles();
 
         // Create a new default user for the staff
@@ -115,6 +125,9 @@ public class StaffFormDialog extends DialogForm<Staff> {
 
         if (super.model != null && super.model.getId() != null) {
             setEdit(true);
+             if (super.model.getUserAccount() != null && !super.model.getUserAccount().getRoles().isEmpty()) {
+                this.selectedRole = super.model.getUserAccount().getRoles().iterator().next();
+            }
         } else {
             if (super.model == null) {
                 super.model = new Staff();

@@ -99,7 +99,7 @@ public class StaffServiceImpl extends GenericServiceImpl<Staff> implements Staff
                 logger.warn("Cannot send welcome email - staff has no user account");
             }
         } catch (Exception e) {
-            logger.error("Failed to send welcome email for staff ID: {}", 
+            logger.error("Failed to send welcome email for staff ID: {}",
                          (staff != null ? staff.getId() : "unknown"), e);
         }
     }
@@ -115,12 +115,14 @@ public class StaffServiceImpl extends GenericServiceImpl<Staff> implements Staff
     @Override
     public User activateUserAccount(Staff staff) throws ValidationFailedException, OperationFailedException {
         Validate.notNull(staff, "Staff member not specified");
-
-        if (staff.getUserAccount() == null) {
-            throw new ValidationFailedException("Staff member does not have a user account to activate.");
-        }
+        Validate.notNull(staff.getUserAccount(), "Staff member does not have a user account.");
 
         User userAccount = staff.getUserAccount();
+
+        if (userAccount.getRecordStatus() == RecordStatus.ACTIVE) {
+            throw new OperationFailedException("This user account is already active.");
+        }
+
         userAccount.setRecordStatus(RecordStatus.ACTIVE);
         userAccount = userService.saveUser(userAccount);
 

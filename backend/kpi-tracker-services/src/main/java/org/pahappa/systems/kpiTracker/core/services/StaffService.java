@@ -17,10 +17,11 @@ public interface StaffService extends GenericService<Staff> {
 
     boolean canStaffAccessSystem(Staff staff);
 
-    /**
-     * Retrieves a Staff entity using the associated User account.
-     * @param user The user account to search with.
-     * @return The matching Staff member, or null if not found.
-     */
     Staff getStaffByUser(User user);
+
+    /**
+     * Atomically updates a user's password, hashes it, and clears the first login flag on the associated staff profile.
+     * @return The updated Staff entity.
+     */
+    Staff updatePasswordAndClearFirstLogin(Staff staff, String newPassword) throws ValidationFailedException, OperationFailedException;
 }

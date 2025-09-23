@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.pahappa.systems.kpiTracker.core.services.StaffService;
+import org.pahappa.systems.kpiTracker.models.constants.StaffStatus;
 import org.pahappa.systems.kpiTracker.models.staff.Staff;
 import org.pahappa.systems.kpiTracker.security.HyperLinks;
 import org.pahappa.systems.kpiTracker.security.UiUtils;
@@ -50,6 +51,7 @@ public class StaffView extends PaginatedTableView<Staff, StaffService, StaffServ
     private long totalStaff;
     private long maleStaff;
     private long femaleStaff;
+    private long activeStaff;
 
     @PostConstruct
     public void init() {

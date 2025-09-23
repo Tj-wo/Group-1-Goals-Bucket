@@ -18,12 +18,14 @@ import org.sers.webutils.model.security.User;
 import org.sers.webutils.server.core.security.util.CustomSecurityUtil;
 import org.sers.webutils.server.core.service.RoleService;
 import org.sers.webutils.server.core.service.UserService;
+import org.sers.webutils.server.shared.SharedAppData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Date;
 import java.util.UUID;
 
 @Service("staffService")
@@ -47,24 +49,38 @@ public class StaffServiceImpl extends GenericServiceImpl<Staff> implements Staff
     @Autowired
     private EmailNotificationService emailNotificationService;
 
-    // =====================
-    // SAVE STAFF OPERATIONS
-    // =====================
-
     @Override
     public Staff createNewStaff(Staff staff) throws ValidationFailedException {
         Validate.notNull(staff, "Staff details cannot be null");
         Validate.notNull(staff.getUserAccount(), "Staff must have a user account");
 
         User user = staff.getUserAccount();
+        User currentUser = SharedAppData.getLoggedInUser();
 
-        user.setRecordStatus(RecordStatus.ACTIVE_LOCKED);
-        user.setClearTextPassword(UUID.randomUUID().toString()); // Set a temporary, unusable password.
+        if (userService.getUserByUsername(user.getUsername()) != null) {
+            throw new ValidationFailedException("A user with the email '" + user.getUsername() + "' already exists.");
+        }
 
+        Date currentDate = new Date();
+        user.setCreatedBy(currentUser);
+        user.setDateCreated(currentDate);
+        user.setChangedBy(currentUser);
+        user.setDateChanged(currentDate);
+
+        user.setClearTextPassword(UUID.randomUUID().toString());
         CustomSecurityUtil.prepUserCredentials(user);
+        user.setRecordStatus(RecordStatus.ACTIVE_LOCKED);
 
+
+        staff.setFirstName(user.getFirstName());
+        staff.setLastName(user.getLastName());
+        staff.setEmailAddress(user.getEmailAddress());
+        staff.setPhoneNumber(user.getPhoneNumber());
+        staff.setGender(user.getGender());
+        staff.setUserAccount(user);
         staff.setStaffStatus(StaffStatus.DEACTIVATED);
         staff.setActive(false);
+        staff.setFirstLogin(true); // A new staff member should always require a password change.
 
         return super.save(staff);
     }
@@ -112,6 +128,7 @@ public class StaffServiceImpl extends GenericServiceImpl<Staff> implements Staff
                     if (StringUtils.isBlank(tempPassword)) {
                         tempPassword = SecurePasswordGenerator.generateTemporaryPassword();
                         userAccount.setClearTextPassword(tempPassword);
+                        CustomSecurityUtil.prepUserCredentials(userAccount); // CRITICAL: Hash the new password before saving.
                         userService.saveUser(userAccount);
                     }
 
@@ -149,21 +166,21 @@ public class StaffServiceImpl extends GenericServiceImpl<Staff> implements Staff
             throw new OperationFailedException("This user account is already active.");
         }
 
-        // Generate a temporary password for the first-time activation email
         String tempPassword = SecurePasswordGenerator.generateTemporaryPassword();
         userAccount.setClearTextPassword(tempPassword);
-        userAccount.setRecordStatus(RecordStatus.ACTIVE);
 
+        CustomSecurityUtil.prepUserCredentials(userAccount);
+
+        userAccount.setRecordStatus(RecordStatus.ACTIVE);
         userService.saveUser(userAccount);
 
         staff.setActive(true);
-        // Explicitly flag the staff member for a mandatory password change on their first login.
-        staff.setFirstLogin(true);
+        // staff.setFirstLogin(true); // This is now redundant as it's set on creation.
         staff.setStaffStatus(StaffStatus.ACTIVE);
         super.merge(staff);
 
-
         sendWelcomeEmail(staff, tempPassword);
+
         return userAccount;
     }
 
@@ -249,5 +266,35 @@ public class StaffServiceImpl extends GenericServiceImpl<Staff> implements Staff
         }
         // Use the searchUnique method from the parent GenericServiceImpl
         return super.searchUnique(new Search(Staff.class).addFilterEqual("userAccount", user));
+    }
+
+    @Override
+    public Staff updatePasswordAndClearFirstLogin(Staff staff, String newPassword) throws ValidationFailedException, OperationFailedException {
+        Validate.notNull(staff, "Staff cannot be null");
+        Validate.notNull(staff.getUserAccount(), "Staff must have a user account");
+        Validate.hasText(newPassword, "New password cannot be blank");
+
+        // Re-fetch the user to ensure we are working with a managed entity
+        User userToUpdate = userService.getUserByUsername(staff.getUserAccount().getUsername());
+        if (userToUpdate == null) {
+            throw new OperationFailedException("Could not reload the user profile.");
+        }
+
+        // Re-fetch the staff member to ensure it's also managed
+        Staff staffToUpdate = this.getStaffByUser(userToUpdate);
+        if (staffToUpdate == null) {
+            throw new OperationFailedException("Could not find an associated staff profile.");
+        }
+
+        // 1. Set and hash the new password for the User
+        userToUpdate.setClearTextPassword(newPassword);
+        CustomSecurityUtil.prepUserCredentials(userToUpdate);
+
+        // 2. Update the firstLogin flag on the Staff entity
+        staffToUpdate.setFirstLogin(false);
+
+        // The @Transactional annotation on the class will ensure both entities are saved
+        // atomically when the method returns. Explicit saves are not needed here.
+        return super.merge(staffToUpdate);
     }
 }

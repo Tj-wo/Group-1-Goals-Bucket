@@ -1,6 +1,6 @@
 <ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:h="http://java.sun.com/jsf/html"
-    xmlns:f="http://java.sun.com/jsf/core" xmlns:ui="http://java.sun.com/jsf/facelets"
-    xmlns:p="http://primefaces.org/ui" template="/pages/californiatemplate/dialog-template.xhtml">
+                xmlns:f="http://java.sun.com/jsf/core" xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui" template="/pages/californiatemplate/dialog-template.xhtml">
 
     <ui:define name="content">
         <title>#{staffFormDialog.edit ? 'Edit Staff' : 'Add Staff'}</title>
@@ -15,7 +15,7 @@
                     <div class="p-field p-col-6">
                         <p:outputLabel for="firstName" value="First Name"/>
                         <p:inputText id="firstName"
-                                     value="#{staffFormDialog.model.firstName}"
+                                     value="#{staffFormDialog.model.userAccount.firstName}"
                                      required="true"
                                      requiredMessage="First name is required"
                                      placeholder="Enter first name">
@@ -27,7 +27,7 @@
                     <div class="p-field p-col-6">
                         <p:outputLabel for="lastName" value="Last Name"/>
                         <p:inputText id="lastName"
-                                     value="#{staffFormDialog.model.lastName}"
+                                     value="#{staffFormDialog.model.userAccount.lastName}"
                                      required="true"
                                      requiredMessage="Last name is required"
                                      placeholder="Enter last name">
@@ -42,7 +42,7 @@
                     <div class="p-field p-col-12">
                         <p:outputLabel for="email" value="Email Address"/>
                         <p:inputText id="email"
-                                     value="#{staffFormDialog.model.emailAddress}"
+                                     value="#{staffFormDialog.model.userAccount.emailAddress}"
                                      required="true"
                                      requiredMessage="Email address is required"
                                      placeholder="Enter email address"
@@ -57,7 +57,7 @@
                     <div class="p-field p-col-12">
                         <p:outputLabel for="phoneNumber" value="Phone Number"/>
                         <p:inputText id="phoneNumber"
-                                     value="#{staffFormDialog.model.phoneNumber}"
+                                     value="#{staffFormDialog.model.userAccount.phoneNumber}"
                                      required="true"
                                      requiredMessage="Phone number is required"
                                      placeholder="0771234567 or 256771234567"
@@ -65,13 +65,13 @@
                             <f:validateRegex pattern="^(0(77|74|78|76|70)\d{7}|256(77|74|78|76|70)\d{7})$" />
                             <p:ajax event="blur" update="messages"/>
                         </p:inputText>
-                    </di
+                    </div>
 
                     <!-- Gender -->
                     <div class="p-field p-col-12">
                         <p:outputLabel for="gender" value="Gender"/>
                         <p:selectOneMenu id="gender"
-                                         value="#{staffFormDialog.model.gender}"
+                                         value="#{staffFormDialog.model.userAccount.gender}"
                                          converter="genderConverter"
                                          required="true"
                                          requiredMessage="Please select a gender">
@@ -79,7 +79,7 @@
                             <f:selectItems value="#{staffFormDialog.listOfGenders}" var="g" itemLabel="#{g.name()}" itemValue="#{g}"/>
                         </p:selectOneMenu>
                     </div>
-         <!-- Roles -->
+                    <!-- Roles -->
                     <div class="p-field p-col-12">
                         <p:outputLabel for="roles" value="Assign Role"/>
                         <p:selectOneRadio id="roles"
@@ -110,7 +110,7 @@
                                  actionListener="#{staffFormDialog.save}"
                                  update="staffForm messages"
                                  styleClass="ui-button-primary" />
-              </div>
+            </div>
         </h:form>
     </ui:define>
 </ui:composition>

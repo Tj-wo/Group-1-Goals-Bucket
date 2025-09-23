@@ -2,6 +2,7 @@ package org.pahappa.systems.kpiTracker.views.staff;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 import org.pahappa.systems.kpiTracker.core.services.StaffService;
 import org.pahappa.systems.kpiTracker.models.constants.StaffStatus;
 import org.pahappa.systems.kpiTracker.models.staff.Staff;
@@ -61,10 +62,9 @@ public class StaffFormDialog extends DialogForm<Staff> {
     @Override
     public void persist() throws Exception {
         if (edit) {
-            // Update existing staff
             userService.saveUser(super.getModel().getUserAccount());
+            staffService.saveStaff(super.getModel());
         } else {
-            // Create new staff with a user account
             createNewStaff();
         }
     }
@@ -73,8 +73,8 @@ public class StaffFormDialog extends DialogForm<Staff> {
      * Creates a new staff record and associated user account.
      */
     private void createNewStaff() throws Exception {
-        if (model.getUserAccount() == null) {
-            throw new ValidationFailedException("User account is required for staff creation.");
+        if (model.getUserAccount() == null || StringUtils.isBlank(model.getUserAccount().getEmailAddress())) {
+            throw new ValidationFailedException("User email is required for staff creation.");
         }
 
         User user = model.getUserAccount();
@@ -82,8 +82,9 @@ public class StaffFormDialog extends DialogForm<Staff> {
 
         if (this.selectedRole != null) {
             user.setRoles(new HashSet<>(Collections.singletonList(this.selectedRole)));
+        } else {
+            throw new ValidationFailedException("A role must be selected for the new staff.");
         }
-
 
         this.staffService.createNewStaff(super.model);
     }

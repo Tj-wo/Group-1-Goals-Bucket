@@ -110,6 +110,30 @@ public abstract class Validate {
 	}
 
 	/**
+	 * Assert that the given String contains valid text content; that is, it
+	 * must not be {@code null} and must contain at least one non-whitespace
+	 * character.
+	 *
+	 * <pre class="code">
+	 * Assert.notBlank(name, "'name' must not be empty");
+	 * </pre>
+	 *
+	 * @param text
+	 *            the String to check
+	 * @param message
+	 *            the exception message to use if the assertion fails
+	 * @param args
+	 *            optional arguments for the message
+	 * @throws ValidationFailedException
+	 *             if the text does not contain valid text content
+	 */
+	public static void notBlank(String text, String message, Object... args) throws ValidationFailedException {
+		if (!StringUtils.isNotBlank(text)) {
+			throw new ValidationFailedException(format(message, args));
+		}
+	}
+
+	/**
 	 * Assert that the given String is not empty; that is, it must not be
 	 * {@code null} and not the empty String.
 	 * 

@@ -19,6 +19,8 @@
 			http://www.springframework.org/schema/security 
           	http://www.springframework.org/schema/security/spring-security-3.0.3.xsd">
 
+	<import resource="classpath:applicationContext-server.xml" />
+
 	<bean id="authenticationService"
 		class="org.sers.webutils.server.core.security.service.impl.CustomAuthenticationServiceImpl" />
 
@@ -107,6 +109,7 @@
 		<property name="alwaysRemember" value="false" />
 		<property name="parameter"
 			value="_spring_security_remember_me" />
+		<property name="tokenValiditySeconds" value="1209600" />
 	</bean>
 
 	<bean id="rememberMeAuthenticationProvider"

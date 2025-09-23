@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:p="http://www.springframework.org/schema/p"
-	xmlns:aop="http://www.springframework.org/schema/aop"
-	xmlns:tx="http://www.springframework.org/schema/tx"
-	xmlns:security="http://www.springframework.org/schema/security"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:p="http://www.springframework.org/schema/p"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
+	   xmlns:tx="http://www.springframework.org/schema/tx"
+	   xmlns:security="http://www.springframework.org/schema/security"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
        http://www.springframework.org/schema/security
@@ -79,11 +79,11 @@
 			<security:filter-chain pattern="/api/**"
 				filters="none" />
 			<security:filter-chain pattern="/**"
-				filters="
+								   filters="
 	           securityContextPersistenceFilterWithASCTrue,
 	           logoutFilter,
-	           formLoginFilter,
 	           rememberMeFilter,
+	           formLoginFilter,
 	           exceptionTranslationFilter,
 	           filterSecurityInterceptor" />
 		</security:filter-chain-map>
@@ -187,4 +187,18 @@
 		<property name="authenticationManager"
 			ref="authenticationManager" />
 	</bean>
+
+	<!-- Remember Me Services Bean -->
+	<bean id="rememberMeServices" class="org.pahappa.systems.kpiTracker.security.CustomRememberMeServices">
+		<constructor-arg value="KpiTracker2025SecretKey!@#$%^&amp;*()" />
+		<constructor-arg ref="userDetailsServiceImpl" />
+		<property name="parameter" value="remember-me_input" />
+		<property name="cookieName" value="KPI_TRACKER_REMEMBER_ME" />
+		<property name="tokenValiditySeconds" value="1209600" />
+		<property name="alwaysRemember" value="false" />
+		<property name="useSecureCookie" value="false" />
+	</bean>
+
+	<!-- UserDetailsService Bean -->
+	<bean id="userDetailsServiceImpl" class="org.pahappa.systems.kpiTracker.security.UserDetailsServiceImpl" />
 </beans>

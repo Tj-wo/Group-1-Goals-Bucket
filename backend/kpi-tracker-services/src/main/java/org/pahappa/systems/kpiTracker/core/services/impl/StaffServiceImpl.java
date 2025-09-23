@@ -15,6 +15,7 @@ import org.sers.webutils.model.exception.OperationFailedException;
 import org.sers.webutils.model.exception.ValidationFailedException;
 import org.sers.webutils.model.security.Role;
 import org.sers.webutils.model.security.User;
+import org.sers.webutils.server.core.security.util.CustomSecurityUtil;
 import org.sers.webutils.server.core.service.RoleService;
 import org.sers.webutils.server.core.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.UUID;
 
 @Service("staffService")
 @Transactional
@@ -49,11 +52,34 @@ public class StaffServiceImpl extends GenericServiceImpl<Staff> implements Staff
     // =====================
 
     @Override
+    public Staff createNewStaff(Staff staff) throws ValidationFailedException {
+        Validate.notNull(staff, "Staff details cannot be null");
+        Validate.notNull(staff.getUserAccount(), "Staff must have a user account");
+
+        User user = staff.getUserAccount();
+
+        user.setRecordStatus(RecordStatus.ACTIVE_LOCKED);
+        user.setClearTextPassword(UUID.randomUUID().toString()); // Set a temporary, unusable password.
+
+        CustomSecurityUtil.prepUserCredentials(user);
+
+        staff.setStaffStatus(StaffStatus.DEACTIVATED);
+        staff.setActive(false);
+
+        return super.save(staff);
+    }
+
+    @Override
     public Staff saveStaff(Staff staff) throws ValidationFailedException {
         Validate.notNull(staff, "Staff details cannot be null");
 
+        boolean isNewStaff = staff.getId() == null;
+
         Staff savedStaff = super.merge(staff);
-        sendWelcomeEmailIfApplicable(savedStaff, null);
+
+        if (isNewStaff) {
+            sendWelcomeEmailIfApplicable(savedStaff, null);
+        }
 
         return savedStaff;
     }
@@ -123,20 +149,42 @@ public class StaffServiceImpl extends GenericServiceImpl<Staff> implements Staff
             throw new OperationFailedException("This user account is already active.");
         }
 
+        // Generate a temporary password for the first-time activation email
+        String tempPassword = SecurePasswordGenerator.generateTemporaryPassword();
+        userAccount.setClearTextPassword(tempPassword);
         userAccount.setRecordStatus(RecordStatus.ACTIVE);
-        userAccount = userService.saveUser(userAccount);
+
+        userService.saveUser(userAccount);
 
         staff.setActive(true);
+        // Explicitly flag the staff member for a mandatory password change on their first login.
+        staff.setFirstLogin(true);
         staff.setStaffStatus(StaffStatus.ACTIVE);
         super.merge(staff);
 
-        sendWelcomeEmailIfApplicable(staff, null);
+
+        sendWelcomeEmail(staff, tempPassword);
         return userAccount;
     }
 
-    // ==========================
-    // USER ACCOUNT DEACTIVATION
-    // ==========================
+    private void sendWelcomeEmail(Staff staff, String password) {
+        try {
+            User userAccount = staff.getUserAccount();
+            String email = userAccount.getEmailAddress();
+            String firstName = userAccount.getFirstName();
+            String lastName = userAccount.getLastName();
+
+            if (StringUtils.isNotBlank(email) && StringUtils.isNotBlank(firstName)) {
+                String fullName = firstName + (StringUtils.isNotBlank(lastName) ? " " + lastName : "");
+                emailNotificationService.sendWelcomeEmail(email, fullName, getApplicationBaseUrl(), password);
+                logger.info("Welcome email sent to newly activated user: {}", email);
+            } else {
+                logger.warn("Could not send welcome email - missing email or name for staff ID: {}", staff.getId());
+            }
+        } catch (Exception e) {
+            logger.error("Failed to send welcome email for staff ID: {}", staff.getId(), e);
+        }
+    }
 
     @Override
     public void deactivateUserAccount(Staff staff) throws ValidationFailedException, OperationFailedException {
@@ -192,5 +240,14 @@ public class StaffServiceImpl extends GenericServiceImpl<Staff> implements Staff
 
     public Role getNormalUserRole() {
         return roleService.getRoleByName("Normal User");
+    }
+
+    @Override
+    public Staff getStaffByUser(User user) {
+        if (user == null) {
+            return null;
+        }
+        // Use the searchUnique method from the parent GenericServiceImpl
+        return super.searchUnique(new Search(Staff.class).addFilterEqual("userAccount", user));
     }
 }

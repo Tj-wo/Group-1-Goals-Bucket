@@ -101,6 +101,18 @@ public class Staff extends BaseEntity {
         this.gender = gender;
     }
 
+    @Column(name = "is_first_login")
+    private Boolean firstLogin = true;
+
+    public Boolean isFirstLogin() {
+        // Defensive check to prevent NullPointerException, defaulting to false if null.
+        return firstLogin != null && firstLogin;
+    }
+
+    public void setFirstLogin(Boolean firstLogin) {
+        this.firstLogin = firstLogin;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

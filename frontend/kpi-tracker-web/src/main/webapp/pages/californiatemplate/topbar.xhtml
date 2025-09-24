@@ -7,17 +7,13 @@
 
     <div class="layout-topbar">
         <h:link outcome="/dashboard" styleClass="logo">
-            <p:graphicImage name="images/logo.png" library="california-layout"/>
+            <h:graphicImage name="images/cropped-Original-logo_1-2 (1).png" alt="Pahappa Logo"/>
         </h:link>
 
         <a id="menu-button" href="#">
             <i class="pi pi-align-left"/>
         </a>
 
-        <a id="layout-megamenu-button" href="#">
-            <i class="pi pi-angle-down"/>
-            <span class="mega-menu-title">Mega Menu</span>
-        </a>
         <h:form id="topbarProfileForm">
             <ui:fragment rendered="#{guestPreferences.profileMode == 'topbar' ? true : false}">
                 <a id="topbar-menu-button" href="#">
@@ -32,39 +28,7 @@
                             <span class="topbar-item-name">Profile</span>
                         </a>
                     </li>
-                    <li>
-                        <a href="#">
-                            <i class="pi pi-fw pi-cog"/>
-                            <span class="topbar-item-name">Settings</span>
-                            <i class="layout-menuitem-toggler pi pi-fw pi-angle-down"/>
-                        </a>
-                        <ul>
-                            <li role="menuitem">
-                                <a href="#">
-                                    <i class="pi pi-fw pi-palette"/>
-                                    <span>Change</span>
-                                </a>
-                            </li>
-                            <li role="menuitem">
-                                <a href="#">
-                                    <i class="pi pi-fw pi-star"/>
-                                    <span>Favorites</span>
-                                </a>
-                            </li>
-                            <li role="menuitem">
-                                <a href="#">
-                                    <i class="pi pi-fw pi-lock"/>
-                                    <span>Lock Screen</span>
-                                </a>
-                            </li>
-                            <li role="menuitem">
-                                <a href="#">
-                                    <i class="pi pi-fw pi-image"/>
-                                    <span>Wallpaper</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
+
                     <li>
                         <a href="#">
                             <i class="pi pi-fw pi-envelope"/>
@@ -104,45 +68,9 @@
                             </li>
                         </ul>
                     </li>
-                    <li>
-                        <a href="#">
-                            <i class="pi pi-fw pi-bell"/>
-                            <span class="topbar-item-name">Notifications</span>
-                            <i class="layout-menuitem-toggler pi pi-fw pi-angle-down"/>
-                        </a>
-                        <ul>
-                            <li role="menuitem">
-                                <a href="#">
-                                    <i class="pi pi-fw pi-sliders-h"/>
-                                    <span>Pending tasks</span>
-                                </a>
-                            </li>
-                            <li role="menuitem">
-                                <a href="#">
-                                    <i class="pi pi-fw pi-calendar"/>
-                                    <span>Meeting today</span>
-                                </a>
-                            </li>
-                            <li role="menuitem">
-                                <a href="#">
-                                    <i class="pi pi-fw pi-download"/>
-                                    <span>Download</span>
-                                </a>
-                            </li>
-                            <li role="menuitem">
-                                <a href="#">
-                                    <i class="pi pi-fw pi-ticket"/>
-                                    <span>Book flight</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
                 </ul>
             </ui:fragment>
         </h:form>
-        <a id="right-sidebar-button" href="#">
-            <i class="pi pi-ellipsis-v"/>
-        </a>
     </div>
 
 </ui:composition>

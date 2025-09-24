@@ -34,7 +34,6 @@
 	<context:component-scan
 		base-package="org.sers.webutils.server.core.service.migrations" />
 
-	<!-- Project specific beans -->
 	<context:component-scan
 		base-package="org.pahappa.systems.kpiTracker.core.services.impl" />
 	<context:component-scan
@@ -42,12 +41,13 @@
 
 	<bean id="dataSource"
 		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-		<property name="driverClassName"
-			value="com.mysql.jdbc.Driver" />
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
 		<property name="url" value="jdbc:mysql://localhost/db_kpi_tracker?createDatabaseIfNotExist=true" />
 		<property name="username" value="root" />
 		<property name="password" value="" />
-		
+<!--		<property name="url" value="jdbc:mysql://localhost/group2kpitracker_db?createDatabaseIfNotExist=true" />-->
+<!--		<property name="username" value="group2kpitracker_user" />-->
+<!--		<property name="password" value="kzQOQ]XJsQ64" />-->
 	</bean>
 	
 	<bean id="sessionFactory"
@@ -68,7 +68,6 @@
 		</property>
 	</bean>
 
-	<!-- JPA CONFIGURATIONS -->
 	<bean id="entityManagerFactory"
 		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
 		<property name="dataSource" ref="dataSource" />

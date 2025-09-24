@@ -449,23 +449,35 @@
                 <h:outputScript>
                     // Check for authentication errors when page loads
                     if (window.location.search.includes('error=true')) {
-                        // Show error message
-                        var messagesDiv = document.getElementById('messages');
-                        if (messagesDiv) {
-                            messagesDiv.innerHTML = '<div class="ui-messages ui-messages-error" style="display: block;"><div class="ui-message ui-message-error"><span class="ui-message-icon pi pi-times"></span>Invalid email or password. Please check your credentials and try again.<span class="ui-message-close">×</span></div></div>';
-                        }
+                    // Show error message
+                    var messagesDiv = document.getElementById('messages');
+                    if (messagesDiv) {
+                    messagesDiv.innerHTML = '<div class="ui-messages ui-messages-error" style="display: block;">
+                        <div class="ui-message ui-message-error"><span
+                                class="ui-message-icon pi pi-times"></span>Invalid email or password. Please check your
+                            credentials and try again.<span class="ui-message-close">×</span></div>
+                    </div>';
+                    }
                     } else if (window.location.search.includes('logout=true')) {
-                        // Show logout message
-                        var messagesDiv = document.getElementById('messages');
-                        if (messagesDiv) {
-                            messagesDiv.innerHTML = '<div class="ui-messages ui-messages-info" style="display: block;"><div class="ui-message ui-message-info"><span class="ui-message-icon pi pi-check"></span>You have been successfully logged out. Thank you for using KPI Tracker!<span class="ui-message-close">×</span></div></div>';
-                        }
+                    // Show logout message
+                    var messagesDiv = document.getElementById('messages');
+                    if (messagesDiv) {
+                    messagesDiv.innerHTML = '<div class="ui-messages ui-messages-info" style="display: block;">
+                        <div class="ui-message ui-message-info"><span class="ui-message-icon pi pi-check"></span>You
+                            have been successfully logged out. Thank you for using KPI Tracker!<span
+                                class="ui-message-close">×</span></div>
+                    </div>';
+                    }
                     } else if (window.location.search.includes('expired=true')) {
-                        // Show expired message
-                        var messagesDiv = document.getElementById('messages');
-                        if (messagesDiv) {
-                            messagesDiv.innerHTML = '<div class="ui-messages ui-messages-warn" style="display: block;"><div class="ui-message ui-message-warn"><span class="ui-message-icon pi pi-exclamation-triangle"></span>Your session has expired. Please log in again to continue.<span class="ui-message-close">×</span></div></div>';
-                        }
+                    // Show expired message
+                    var messagesDiv = document.getElementById('messages');
+                    if (messagesDiv) {
+                    messagesDiv.innerHTML = '<div class="ui-messages ui-messages-warn" style="display: block;">
+                        <div class="ui-message ui-message-warn"><span
+                                class="ui-message-icon pi pi-exclamation-triangle"></span>Your session has expired.
+                            Please log in again to continue.<span class="ui-message-close">×</span></div>
+                    </div>';
+                    }
                     }
                 </h:outputScript>
 
@@ -481,7 +493,6 @@
                         style="width: 100%; padding: 15px 20px; border: 2px solid #e1e8ed; border-radius: 8px; font-size: 1rem; box-sizing: border-box; background: #f8f9fa;">
                         <p:ajax update="j_username" />
                     </p:inputText>
-                    <p:message for="j_username" styleClass="validation-error" />
                 </div>
 
                 <div class="form-group">
@@ -491,15 +502,16 @@
                         style="width: 100%; padding: 15px 20px; border: 2px solid #e1e8ed; border-radius: 8px; font-size: 1rem; box-sizing: border-box; background: #f8f9fa;">
                         <p:ajax update="j_password" />
                     </p:inputText>
-                    <p:message for="j_password" styleClass="validation-error" />
                 </div>
 
                 <div class="form-options">
                     <div class="remember-me">
-                        <p:selectBooleanCheckbox id="remember-me" />
-                        <p:outputLabel for="remember-me" value="Remember Me" />
+                        <p:selectBooleanCheckbox id="remember-me_input" value="#{loginController.rememberMe}" />
+                        <p:outputLabel for="remember-me_input" value="Remember Me" />
                     </div>
-                    <a href="#" class="forgot-password">Forgot Password?</a>
+                    <h:outputLink value="#{request.contextPath}/ExternalViews/ForgotPassword.xhtml"
+                        class="forgot-password">Forgot Password?
+                    </h:outputLink>
                 </div>
 
                 <p:commandButton id="login" value="Sign in" ajax="false" styleClass="login-button" validateClient="true"

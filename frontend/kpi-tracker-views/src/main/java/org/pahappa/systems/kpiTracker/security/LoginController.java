@@ -46,11 +46,20 @@ public class LoginController implements PhaseListener {
 		ExternalContext context = FacesContext.getCurrentInstance().getExternalContext();
 		ServletRequest request = (ServletRequest) context.getRequest();
 
-		// Set the _spring_security_remember_me parameter
-		request.setAttribute("_spring_security_remember_me", rememberMe ? "true" : "false");
+		// Create a wrapper request that includes the remember-me parameter
+		ServletRequest wrappedRequest = new javax.servlet.http.HttpServletRequestWrapper(
+				(javax.servlet.http.HttpServletRequest) request) {
+			@Override
+			public String getParameter(String name) {
+				if ("remember-me_input".equals(name)) {
+					return rememberMe ? "true" : "false";
+				}
+				return super.getParameter(name);
+			}
+		};
 
 		RequestDispatcher dispatcher = request.getRequestDispatcher(SPRING_SECURITY_CHECK_ACTION);
-		dispatcher.forward(request, (ServletResponse) context.getResponse());
+		dispatcher.forward(wrappedRequest, (ServletResponse) context.getResponse());
 		FacesContext.getCurrentInstance().responseComplete();
 		return null;
 	}
@@ -116,5 +125,14 @@ public class LoginController implements PhaseListener {
 	@Override
 	public void beforePhase(PhaseEvent event) {
 		checkAuthenticationStatus();
+	}
+
+	// Getter and Setter for rememberMe
+	public boolean isRememberMe() {
+		return rememberMe;
+	}
+
+	public void setRememberMe(boolean rememberMe) {
+		this.rememberMe = rememberMe;
 	}
 }

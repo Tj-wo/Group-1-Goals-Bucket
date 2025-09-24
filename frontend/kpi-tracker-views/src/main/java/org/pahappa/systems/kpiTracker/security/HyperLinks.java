@@ -22,4 +22,7 @@ public class HyperLinks {
     public static final String STAFF_FORM_DIALOG = "/pages/staff/StaffFormDialog.xhtml";
 
 
+    public static final String DEPARTMENT_FORM_DIALOG = "/pages/department/DepartmentForm.xhtml";
+    public static final String DEPARTMENT_VIEW ="pages/department/DepartmentView.xhtml?faces-redirect=true";
+    public static final String DEPARTMENT_DETAIL_VIEW ="pages/department/DepartmentDetailView.xhtml?faces-redirect=true" ;
 }

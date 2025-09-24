@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/Group-1-KPI-Tracker.iml" filepath="$PROJECT_DIR$/.idea/Group-1-KPI-Tracker.iml" />
-      <module fileurl="file://$PROJECT_DIR$/frontend/kpi-tracker-web/kpi-tracker.iml" filepath="$PROJECT_DIR$/frontend/kpi-tracker-web/kpi-tracker.iml" />
     </modules>
   </component>
 </project>

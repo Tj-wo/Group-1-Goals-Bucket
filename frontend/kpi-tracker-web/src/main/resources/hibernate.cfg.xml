@@ -45,6 +45,7 @@
 		<mapping class="org.pahappa.systems.kpiTracker.models.settings.ApplicationSettings"/>
 		<mapping class="org.pahappa.systems.kpiTracker.models.staff.Staff" />
 		<mapping class="org.pahappa.systems.kpiTracker.models.security.PasswordResetToken" />
+		<mapping class="org.pahappa.systems.kpiTracker.models.department.Department"/>
 		
 	</session-factory>
 </hibernate-configuration>

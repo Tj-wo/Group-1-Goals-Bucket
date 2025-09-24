@@ -1,0 +1,131 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/pages/californiatemplate/template.xhtml">
+
+    <ui:define name="title">Department Management</ui:define>
+    <ui:define name="viewname">Department Management</ui:define>
+
+    <ui:define name="content">
+
+        <div class="ui-g ui-fluid">
+            <div class="ui-g-12">
+                <h:form id="departmentView">
+
+                    <!-- Filters Card -->
+                    <div class="card">
+                        <h:outputText value="Filters" style="font-weight: bold;"/>
+                        <p:growl id="messages" showDetail="true"/>
+                        <div class="p-grid p-mt-2">
+                            <div class="p-col-12 p-md-6 p-lg-3">
+                                <p:inputText id="searchTerm" value="#{departmentView.searchTerm}" placeholder="Search name, email...">
+                                    <p:ajax event="keyup" delay="500" update=":departmentView:departmentTable" listener="#{departmentView.reloadFilterReset}"/>
+                                </p:inputText>
+                            </div>
+
+
+                            <div class="p-col-12 p-md-6 p-lg-1">
+                                <p:commandButton icon="pi pi-search" styleClass="ui-button-success" id="searchBtn"
+                                                 update=":departmentView:departmentTable"
+                                                 actionListener="#{departmentView.reloadFilterReset}"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- department Data Table -->
+                    <p:dataTable id="departmentTable" var="model" value="#{departmentView.dataModels}"
+                                 widgetVar="departmentTable"
+                                 paginator="true" lazy="true"
+                                 rows="#{departmentView.maximumresultsPerpage}"
+                                 emptyMessage="No department found."
+                                 paginatorPosition="bottom" paginatorAlwaysVisible="false"
+                                 rowIndexVar="row" reflow="true"
+                                 styleClass="TableAlgnment">
+
+                        <!-- Table Header -->
+                        <f:facet name="header">
+                            <div class="p-d-flex p-jc-between">
+                                <div>
+                                    <span class="table-header-text">Department</span>
+                                </div>
+                                <div>
+                                    <p:commandButton value="Add Department" icon="fa fa-plus"
+                                                     process="@this"
+                                                     actionListener="#{departmentFormDialog.show}">
+                                        <f:setPropertyActionListener value="#{null}"
+                                                                     target="#{departmentFormDialog.model}" />
+
+                                        <p:ajax event="dialogReturn"
+                                                listener="#{departmentView.reloadFilterReset}"
+                                                update="departmentTable" />
+                                    </p:commandButton>
+                                </div>
+                            </div>
+                        </f:facet>
+
+                        <!-- Row Number -->
+                        <p:column width="30" headerText="No.">
+                            <h:outputText value="#{row + 1}" />
+                        </p:column>
+
+                        <!-- Department Name -->
+                        <p:column headerText="Department Name">
+                            <h:outputText value="#{model.name}" />
+                        </p:column>
+
+                        <!-- Departmentlead -->
+                        <p:column headerText="Department Lead">
+                            <h:outputText value="No DptLead assigned yet" rendered="#{model.departmentLead == null}" />
+                            <h:outputText value="#{model.departmentLead.userAccount.firstName} #{model.departmentLead.userAccount.lastName}" rendered="#{model.departmentLead != null}" />
+                        </p:column>
+
+                        <!--Description -->
+                        <p:column headerText="Description">
+                            <h:outputText value="#{model.description}" />
+                        </p:column>
+
+
+                        <!-- Actions Column -->
+                        <p:column headerText="Actions" width="200" style="text-align:center">
+                            <!-- Edit Button -->
+                            <p:commandButton icon="fa fa-pencil"
+                                             styleClass="ui-button-secondary ui-button-flat"
+                                             actionListener="#{departmentFormDialog.show}">
+                                <f:setPropertyActionListener value="#{model}" target="#{departmentFormDialog.model}" />
+                                <p:ajax event="dialogReturn"
+                                        listener="#{departmentView.reloadFilterReset}"
+                                        update="departmentTable"/>
+                            </p:commandButton>
+
+                            <!-- Delete -->
+                            <p:commandButton icon="fa fa-trash" title="Delete"
+                                             styleClass="ui-button-secondary ui-button-flat"
+                                             style="margin-left:5px"
+                                             actionListener="#{departmentView.deleteSelectedDepartment(model)}"
+                                             update="departmentView">
+                                <f:setPropertyActionListener value="#{model}"
+                                                             target="#{departmentView.selectedDepartment}" />
+                                <p:confirm header="Confirmation"
+                                           message="You are about to delete department '#{model.name}'. Are you sure?"
+                                           icon="ui-icon-alert" />
+                            </p:commandButton>
+                        </p:column>
+                    </p:dataTable>
+
+                    <!-- Loader -->
+                    <p:blockUI block="departmentView" trigger="searchBtn">
+                        <i class="pi pi-spin pi-spinner" style="font-size: 3rem"></i>
+                    </p:blockUI>
+
+                    <!-- Confirm Dialog -->
+                    <p:confirmDialog global="true" showEffect="fade" hideEffect="fade" responsive="true" width="350">
+                        <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no ui-button-secondary"/>
+                        <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes ui-button-danger"/>
+                    </p:confirmDialog>
+                </h:form>
+            </div>
+        </div>
+    </ui:define>
+</ui:composition>

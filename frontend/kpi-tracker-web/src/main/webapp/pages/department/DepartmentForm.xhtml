@@ -1,0 +1,77 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core" xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui" template="/pages/californiatemplate/dialog-template.xhtml">
+
+    <ui:define name="content">
+        <title>Department Details</title>
+
+        <h:form id="departmentForm">
+
+            <p:growl id="messages" showDetail="true" life="4000" />
+
+            <div class="card ui-fluid">
+                <div class="p-formgrid p-grid">
+                    <!-- Department Name -->
+                    <div class="p-field p-col-6">
+                        <p:outputLabel for="departmentName" value="Department Name"/>
+                        <p:inputText id="departmentName"
+                                     value="#{departmentFormDialog.model.name}"
+                                     required="true"
+                                     requiredMessage="department name is required"
+                                     placeholder="Enter department name">
+                            <p:ajax event="blur" update="messages"/>
+                        </p:inputText>
+                    </div>
+
+                    <!-- department lead-->
+                    <div class="p-field p-col-6">
+                        <p:outputLabel for="departmentLead" value="Department Lead"/>
+                        <p:selectOneMenu id="departmentLead"
+                                         value="#{departmentFormDialog.model.departmentLead}"
+                                         placeholder="Select a department lead" converter="staffConverter">
+
+                            <f:selectItem itemLabel="-- Select a Lead --" itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItems value="#{departmentFormDialog.availableStaff}" var="staff"
+                                           itemLabel="#{staff.userAccount.firstName} #{staff.userAccount.lastName}" itemValue="#{staff}" />
+                            <p:ajax event="blur" update="messages"/>
+                        </p:selectOneMenu>
+                        
+                        <!-- Show message if no staff available -->
+<!--                        <p:outputText value="No available staff members. All staff are already assigned as department leads." -->
+<!--                                     rendered="#{empty departmentFormDialog.availableStaff}" -->
+<!--                                     style="color: orange; font-style: italic; font-size: 12px;"/>-->
+                    </div>
+                </div>
+
+
+                <div class="p-field p-col-12">
+                    <p:outputLabel for="description" value="Description" />
+                    <p:inputTextarea id="description"
+                                     value="#{departmentFormDialog.model.description}"
+                                     placeholder="Enter department description"
+                                     rows="6"
+                                     autoResize="true"
+                                     style="width: 100%;">
+                    </p:inputTextarea>
+                </div>
+            </div>
+
+
+
+            <!-- Action Buttons -->
+            <div class="flex justify-content-end  mt-1" style="align-items: flex-end">
+                <p:commandButton value="Cancel" immediate="true"  process="@this"
+                                 actionListener="#{departmentFormDialog.hide}"
+                                 icon="pi pi-times"
+                                 style=" margin-right: 10px;"
+                                 styleClass="ui-button-danger"/>
+
+                <p:commandButton  value="Save "
+                                  icon="pi pi-check"
+                                  actionListener="#{departmentFormDialog.save}"
+                                  update="@form"
+                                  styleClass="ui-button-primary" />
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

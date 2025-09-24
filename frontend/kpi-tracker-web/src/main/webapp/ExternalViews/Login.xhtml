@@ -509,7 +509,9 @@
                         <p:selectBooleanCheckbox id="remember-me_input" value="#{loginController.rememberMe}" />
                         <p:outputLabel for="remember-me_input" value="Remember Me" />
                     </div>
-                    <a href="#" class="forgot-password">Forgot Password?</a>
+                    <h:outputLink value="#{request.contextPath}/ExternalViews/ForgotPassword.xhtml"
+                        class="forgot-password">Forgot Password?
+                    </h:outputLink>
                 </div>
 
                 <p:commandButton id="login" value="Sign in" ajax="false" styleClass="login-button" validateClient="true"

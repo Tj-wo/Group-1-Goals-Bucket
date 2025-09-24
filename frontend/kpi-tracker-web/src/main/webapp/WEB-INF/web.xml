@@ -59,6 +59,16 @@
 		<param-value>/webconfig/faces-config.xml</param-value>
 	</context-param>
 
+	<context-param>
+		<param-name>javax.faces.FACELETS_VIEW_MAPPINGS</param-name>
+		<param-value>*.xhtml</param-value>
+	</context-param>
+
+	<context-param>
+		<param-name>javax.faces.DEFAULT_SUFFIX</param-name>
+		<param-value>.xhtml</param-value>
+	</context-param>
+
 
 	<!-- Servlets to allow this app to web accessed as a webservice -->
 	<servlet>
@@ -148,6 +158,7 @@
 	<servlet>
 		<servlet-name>Faces Servlet</servlet-name>
 		<servlet-class>javax.faces.webapp.FacesServlet</servlet-class>
+		<load-on-startup>3</load-on-startup>
 	</servlet>
 
 	<servlet-mapping>

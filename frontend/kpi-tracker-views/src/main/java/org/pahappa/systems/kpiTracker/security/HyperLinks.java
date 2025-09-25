@@ -25,4 +25,10 @@ public class HyperLinks {
     public static final String DEPARTMENT_FORM_DIALOG = "/pages/department/DepartmentForm.xhtml";
     public static final String DEPARTMENT_VIEW ="pages/department/DepartmentView.xhtml?faces-redirect=true";
     public static final String DEPARTMENT_DETAIL_VIEW ="pages/department/DepartmentDetailView.xhtml?faces-redirect=true" ;
+
+    // Team Management Links
+    public static final String TEAM_VIEW = "/pages/team/TeamView.xhtml?faces-redirect=true";
+    public static final String TEAM_FORM_DIALOG = "/pages/team/TeamForm.xhtml";
+    public static final String TEAM_MEMBER_VIEW = "/pages/team/TeamMemberView.xhtml?faces-redirect=true";
+    public static final String TEAM_MEMBER_FORM_DIALOG = "/pages/team/TeamMemberForm.xhtml";
 }

@@ -1,0 +1,139 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core" xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui" template="/pages/californiatemplate/template.xhtml">
+
+    <ui:define name="title">Team Management</ui:define>
+    <ui:define name="viewname">Team Management</ui:define>
+
+    <ui:define name="content">
+
+        <!-- CSS for clickable rows -->
+        <h:outputStylesheet>
+            .clickable-row:hover {
+            background-color: #e3f2fd !important;
+            cursor: pointer !important;
+            }
+            .clickable-row:active {
+            background-color: #bbdefb !important;
+            }
+        </h:outputStylesheet>
+
+        <div class="ui-g ui-fluid">
+            <div class="ui-g-12">
+                <h:form id="teamView">
+
+                    <!-- Filters Card -->
+                    <div class="card">
+                        <h:outputText value="Filters" style="font-weight: bold;" />
+                        <p:growl id="messages" showDetail="true" />
+                        <div class="p-grid p-mt-2">
+                            <div class="p-col-12 p-md-6 p-lg-3">
+                                <p:inputText id="searchTerm" value="#{teamView.searchTerm}"
+                                    placeholder="Search team name, description...">
+                                    <p:ajax event="keyup" delay="500" update=":teamView:teamTable"
+                                        listener="#{teamView.reloadFilterReset}" />
+                                </p:inputText>
+                            </div>
+
+                            <div class="p-col-12 p-md-6 p-lg-1">
+                                <p:commandButton icon="pi pi-search" styleClass="ui-button-success" id="searchBtn"
+                                    update=":teamView:teamTable" actionListener="#{teamView.reloadFilterReset}" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Team Data Table -->
+                    <p:dataTable id="teamTable" var="model" value="#{teamView.dataModels}" widgetVar="teamTable"
+                        paginator="true" lazy="true" rows="#{teamView.maximumresultsPerpage}"
+                        emptyMessage="No teams found." paginatorPosition="bottom" paginatorAlwaysVisible="false"
+                        rowIndexVar="row" reflow="true" styleClass="TableAlgnment" selectionMode="single"
+                        selection="#{teamView.selectedTeam}" rowSelectMode="click" style="cursor: pointer;"
+                        rowStyleClass="clickable-row" rowKey="#{model.id}">
+
+                        <!-- Row Selection Event -->
+                        <p:ajax event="rowSelect" listener="#{teamView.onRowSelect}" update="@none" />
+
+                        <!-- Table Header -->
+                        <f:facet name="header">
+                            <div class="p-d-flex p-jc-between">
+                                <div>
+                                    <span class="table-header-text">Teams</span>
+                                </div>
+                                <div>
+                                    <p:commandButton value="Add Team" icon="fa fa-plus" process="@this"
+                                        actionListener="#{teamFormDialog.show}">
+                                        <f:setPropertyActionListener value="#{null}" target="#{teamFormDialog.model}" />
+
+                                        <p:ajax event="dialogReturn" listener="#{teamView.reloadFilterReset}"
+                                            update="teamTable :teamView:messages" />
+                                    </p:commandButton>
+                                </div>
+                            </div>
+                        </f:facet>
+
+                        <!-- Row Number -->
+                        <p:column width="30" headerText="No.">
+                            <h:outputText value="#{row + 1}" />
+                        </p:column>
+
+                        <!-- Team Name -->
+                        <p:column headerText="Team Name">
+                            <h:outputText value="#{model.teamName}" />
+                        </p:column>
+
+                        <!-- Team Lead -->
+                        <p:column headerText="Team Lead">
+                            <h:outputText value="No Team Lead assigned" rendered="#{model.teamLead == null}" />
+                            <h:outputText value="#{model.teamLead.firstName} #{model.teamLead.lastName}"
+                                rendered="#{model.teamLead != null}" />
+                        </p:column>
+
+                        <!-- Department -->
+                        <p:column headerText="Department">
+                            <h:outputText value="No Department assigned" rendered="#{model.department == null}" />
+                            <h:outputText value="#{model.department.name}" rendered="#{model.department != null}" />
+                        </p:column>
+
+                        <!-- Description -->
+                        <p:column headerText="Description">
+                            <h:outputText value="#{model.description}" />
+                        </p:column>
+
+                        <!-- Actions Column -->
+                        <p:column headerText="Actions" width="200" style="text-align:center">
+                            <!-- Edit Button -->
+                            <p:commandButton icon="fa fa-pencil" styleClass="ui-button-secondary ui-button-flat"
+                                actionListener="#{teamFormDialog.show}">
+                                <f:setPropertyActionListener value="#{model}" target="#{teamFormDialog.model}" />
+                                <p:ajax event="dialogReturn" listener="#{teamView.reloadFilterReset}"
+                                    update="teamTable :teamView:messages" />
+                            </p:commandButton>
+
+                            <!-- Delete -->
+                            <p:commandButton icon="fa fa-trash" title="Delete"
+                                styleClass="ui-button-secondary ui-button-flat" style="margin-left:5px"
+                                actionListener="#{teamView.deleteSelectedTeam(model)}" update="teamView">
+                                <f:setPropertyActionListener value="#{model}" target="#{teamView.selectedTeam}" />
+                                <p:confirm header="Confirmation"
+                                    message="You are about to delete team '#{model.teamName}'. Are you sure?"
+                                    icon="ui-icon-alert" />
+                            </p:commandButton>
+                        </p:column>
+                    </p:dataTable>
+
+                    <!-- Loader -->
+                    <p:blockUI block="teamView" trigger="searchBtn">
+                        <i class="pi pi-spin pi-spinner" style="font-size: 3rem"></i>
+                    </p:blockUI>
+
+                    <!-- Confirm Dialog -->
+                    <p:confirmDialog global="true" showEffect="fade" hideEffect="fade" responsive="true" width="350">
+                        <p:commandButton value="No" type="button"
+                            styleClass="ui-confirmdialog-no ui-button-secondary" />
+                        <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes ui-button-danger" />
+                    </p:confirmDialog>
+                </h:form>
+            </div>
+        </div>
+    </ui:define>
+</ui:composition>

@@ -1,0 +1,63 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core" xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui" template="/pages/californiatemplate/dialog-template.xhtml">
+
+    <ui:define name="content">
+        <title>Team Member Details</title>
+
+        <h:form id="teamMemberForm">
+
+            <p:growl id="messages" showDetail="true" life="4000" />
+
+            <div class="card ui-fluid">
+                <div class="p-formgrid p-grid">
+                    <!-- Team Selection -->
+                    <div class="p-field p-col-6">
+                        <p:outputLabel for="team" value="Team" />
+                        <p:selectOneMenu id="team" value="#{teamMemberFormDialog.model.team}"
+                            placeholder="Select a team" converter="teamConverter">
+
+                            <f:selectItem itemLabel="-- Select a Team --" itemValue="#{null}"
+                                noSelectionOption="true" />
+                            <f:selectItems value="#{teamMemberFormDialog.allTeams}" var="team"
+                                itemLabel="#{team.teamName}" itemValue="#{team}" />
+                            <p:ajax event="change" listener="#{teamMemberFormDialog.onTeamChange}" update="staff" />
+                            <p:ajax event="blur" update="messages" />
+                        </p:selectOneMenu>
+                    </div>
+
+                    <!-- Staff Selection -->
+                    <div class="p-field p-col-6">
+                        <p:outputLabel for="staff" value="Staff Member" />
+                        <p:selectOneMenu id="staff" value="#{teamMemberFormDialog.model.staff}"
+                            placeholder="Select a staff member" converter="staffConverter">
+
+                            <f:selectItem itemLabel="-- Select a Staff Member --" itemValue="#{null}"
+                                noSelectionOption="true" />
+                            <f:selectItems value="#{teamMemberFormDialog.availableStaff}" var="staff"
+                                itemLabel="#{staff.firstName} #{staff.lastName}" itemValue="#{staff}" />
+                            <p:ajax event="blur" update="messages" />
+                        </p:selectOneMenu>
+                    </div>
+                </div>
+
+                <div class="p-field p-col-12">
+                    <p:outputLabel for="role" value="Role in Team" />
+                    <p:inputText id="role" value="#{teamMemberFormDialog.model.role}"
+                        placeholder="Enter role (e.g., Member, Senior Member, Lead)" style="width: 100%;">
+                    </p:inputText>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-content-end  mt-1" style="align-items: flex-end">
+                <p:commandButton value="Cancel" immediate="true" process="@this"
+                    actionListener="#{teamMemberFormDialog.hide}" icon="pi pi-times" style=" margin-right: 10px;"
+                    styleClass="ui-button-danger" />
+
+                <p:commandButton value="Save " icon="pi pi-check" actionListener="#{teamMemberFormDialog.save}"
+                    update="@form" styleClass="ui-button-primary" />
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

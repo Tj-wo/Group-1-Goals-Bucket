@@ -101,6 +101,7 @@ public class Staff extends BaseEntity {
         this.gender = gender;
     }
 
+
     @Column(name = "is_first_login")
     private Boolean firstLogin = true;
 

@@ -443,7 +443,7 @@
             <h:form id="loginForm" prependId="false">
                 <!-- Message Display Area -->
                 <div id="messageArea" style="margin-bottom: 20px;">
-                    <p:messages id="messages" showDetail="true" showSummary="true" closable="true" autoUpdate="true"
+                    <p:messages id="messages" showDetail="true" showSummary="true" closable="true"
                         styleClass="ui-messages" infoStyleClass="ui-messages-info" warnStyleClass="ui-messages-warn"
                         errorStyleClass="ui-messages-error" fatalStyleClass="ui-messages-fatal" />
                 </div>
@@ -494,18 +494,15 @@
                     <p:inputText id="j_username" required="true" placeholder="admin@kpitracker.com"
                         requiredMessage="Email address is required"
                         style="width: 100%; padding: 15px 20px; border: 2px solid #e1e8ed; border-radius: 8px; font-size: 1rem; box-sizing: border-box; background: #f8f9fa;">
-                        <p:ajax update="j_username" />
                     </p:inputText>
                 </div>
 
                 <div class="form-group">
                     <label for="j_password">Password</label>
-                    <p:password id="j_password" required="true" placeholder="Enter your password" type="password"
+                    <p:password id="j_password" required="true" placeholder="Enter your password"
                         requiredMessage="Password is required"
                         style="width: 100%; padding: 15px 20px; border: 2px solid #e1e8ed; border-radius: 8px; font-size: 1rem; box-sizing: border-box; background: #f8f9fa;">
-                        <p:ajax update="j_password" />
                     </p:password>
-
                 </div>
 
                 <div class="form-options">
@@ -518,8 +515,8 @@
                     </h:outputLink>
                 </div>
 
-                <p:commandButton id="login" value="Sign in" ajax="false" styleClass="login-button" validateClient="true"
-                    update="loginForm" action="#{loginController.doLogin}" />
+                <p:commandButton id="login" value="Sign in" ajax="false" styleClass="login-button"
+                    action="#{loginController.doLogin}" />
             </h:form>
         </div>
     </div>

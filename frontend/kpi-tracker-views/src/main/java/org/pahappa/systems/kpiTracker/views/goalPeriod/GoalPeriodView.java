@@ -77,7 +77,7 @@ public class GoalPeriodView extends PaginatedTableView<GoalPeriod, GoalPeriodSer
 
     /**
      * Deletes the specific GoalPeriod passed from the UI.
-     * 
+
      * @param periodToDelete The record selected by the user in the data table.
      */
     public void deleteSelectedGoalsPeriod(GoalPeriod periodToDelete) {
@@ -146,6 +146,8 @@ public class GoalPeriodView extends PaginatedTableView<GoalPeriod, GoalPeriodSer
         this.reloadFilterReset();
     }
 
+}
+
     /**
      * Activate a goal period (deactivates any currently active period first)
      */
@@ -206,3 +208,4 @@ public class GoalPeriodView extends PaginatedTableView<GoalPeriod, GoalPeriodSer
         }
     }
 }
+

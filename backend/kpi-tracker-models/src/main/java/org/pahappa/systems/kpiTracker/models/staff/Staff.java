@@ -114,6 +114,22 @@ public class Staff extends BaseEntity {
         this.firstLogin = firstLogin;
     }
 
+    @Transient
+    public String getFullName() {
+        StringBuilder fullName = new StringBuilder();
+        if (firstName != null && !firstName.isEmpty()) {
+            fullName.append(firstName);
+        }
+        if (lastName != null && !lastName.isEmpty()) {
+            if (fullName.length() > 0) {
+                fullName.append(" ");
+            }
+            fullName.append(lastName);
+        }
+        return fullName.toString();
+    }
+
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

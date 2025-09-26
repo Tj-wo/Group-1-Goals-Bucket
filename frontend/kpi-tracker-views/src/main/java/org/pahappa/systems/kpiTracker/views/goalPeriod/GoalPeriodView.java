@@ -4,7 +4,8 @@ import com.googlecode.genericdao.search.Search;
 import lombok.Getter;
 import lombok.Setter;
 import org.pahappa.systems.kpiTracker.core.services.GoalPeriodService;
-import org.pahappa.systems.kpiTracker.models.goal.GoalPeriod;
+import org.pahappa.systems.kpiTracker.models.constants.GoalPeriodStatus;
+import org.pahappa.systems.kpiTracker.models.systemSetup.GoalPeriod;
 import org.pahappa.systems.kpiTracker.security.HyperLinks;
 import org.pahappa.systems.kpiTracker.security.UiUtils;
 import org.pahappa.systems.kpiTracker.views.dialogs.MessageComposer;
@@ -76,7 +77,7 @@ public class GoalPeriodView extends PaginatedTableView<GoalPeriod, GoalPeriodSer
 
     /**
      * Deletes the specific GoalPeriod passed from the UI.
-     *
+
      * @param periodToDelete The record selected by the user in the data table.
      */
     public void deleteSelectedGoalsPeriod(GoalPeriod periodToDelete) {
@@ -144,4 +145,67 @@ public class GoalPeriodView extends PaginatedTableView<GoalPeriod, GoalPeriodSer
         searchTerm = "";
         this.reloadFilterReset();
     }
+
 }
+
+    /**
+     * Activate a goal period (deactivates any currently active period first)
+     */
+    public void activateGoalPeriod(GoalPeriod periodToActivate) {
+        try {
+            if (periodToActivate == null) {
+                MessageComposer.error("Error", "No period selected to activate");
+                return;
+            }
+
+            // First, deactivate any currently active period
+            Search search = new Search(GoalPeriod.class);
+            search.addFilterEqual("recordStatus", RecordStatus.ACTIVE);
+            search.addFilterEqual("status", GoalPeriodStatus.ACTIVE);
+
+            List<GoalPeriod> activePeriods = goalPeriodService.getInstances(search, 0, Integer.MAX_VALUE);
+            for (GoalPeriod active : activePeriods) {
+                if (!active.getId().equals(periodToActivate.getId())) {
+                    active.setStatus(GoalPeriodStatus.IN_ACTIVE);
+                    goalPeriodService.saveInstance(active);
+                }
+            }
+
+            // Now activate the selected period
+            periodToActivate.setStatus(GoalPeriodStatus.ACTIVE);
+            goalPeriodService.saveInstance(periodToActivate);
+
+            MessageComposer.info("Success",
+                    "Goal period '" + periodToActivate.getPeriodName() + "' has been activated");
+            this.reloadFilterReset();
+
+        } catch (Exception e) {
+            MessageComposer.error("Activation Failed", "Error activating goal period: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Deactivate a goal period
+     */
+    public void deactivateGoalPeriod(GoalPeriod periodToDeactivate) {
+        try {
+            if (periodToDeactivate == null) {
+                MessageComposer.error("Error", "No period selected to deactivate");
+                return;
+            }
+
+            periodToDeactivate.setStatus(GoalPeriodStatus.IN_ACTIVE);
+            goalPeriodService.saveInstance(periodToDeactivate);
+
+            MessageComposer.info("Success",
+                    "Goal period '" + periodToDeactivate.getPeriodName() + "' has been deactivated");
+            this.reloadFilterReset();
+
+        } catch (Exception e) {
+            MessageComposer.error("Deactivation Failed", "Error deactivating goal period: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+}
+

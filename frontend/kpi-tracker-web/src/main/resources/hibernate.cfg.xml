@@ -48,7 +48,11 @@
 		<mapping class="org.pahappa.systems.kpiTracker.models.department.Department"/>
 		<mapping class="org.pahappa.systems.kpiTracker.models.team.Team"/>
 		<mapping class="org.pahappa.systems.kpiTracker.models.team.TeamMember"/>
+
 		<mapping class="org.pahappa.systems.kpiTracker.models.goal.Goal"/>
-		<mapping class="org.pahappa.systems.kpiTracker.models.goal.GoalPeriod"/>
+
+		<mapping class="org.pahappa.systems.kpiTracker.models.systemSetup.GoalPeriod"/>
+		<mapping class="org.pahappa.systems.kpiTracker.models.systemSetup.PerformanceThresholds"/>
+
 	</session-factory>
 </hibernate-configuration>

@@ -1,0 +1,208 @@
+package org.pahappa.systems.kpiTracker.views.goalPeriod;
+
+import com.googlecode.genericdao.search.Search;
+import lombok.Getter;
+import lombok.Setter;
+import org.pahappa.systems.kpiTracker.core.services.GoalPeriodService;
+import org.pahappa.systems.kpiTracker.models.constants.GoalPeriodStatus;
+import org.pahappa.systems.kpiTracker.models.systemSetup.GoalPeriod;
+import org.pahappa.systems.kpiTracker.security.HyperLinks;
+import org.pahappa.systems.kpiTracker.security.UiUtils;
+import org.pahappa.systems.kpiTracker.views.dialogs.MessageComposer;
+import org.primefaces.model.FilterMeta;
+import org.primefaces.model.SortMeta;
+import org.sers.webutils.client.views.presenters.PaginatedTableView;
+import org.sers.webutils.client.views.presenters.ViewPath;
+import org.sers.webutils.model.RecordStatus;
+import org.sers.webutils.model.utils.SearchField;
+import org.sers.webutils.server.core.service.excel.reports.ExcelReport;
+import org.sers.webutils.server.core.utils.ApplicationContextProvider;
+
+import javax.annotation.PostConstruct;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.SessionScoped;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+@SessionScoped
+@Getter
+@Setter
+@ViewPath(path = HyperLinks.GOAL_PERIOD_VIEW)
+@ManagedBean(name = "goalPeriodView")
+public class GoalPeriodView extends PaginatedTableView<GoalPeriod, GoalPeriodService, GoalPeriodService> {
+
+    private static final long serialVersionUID = 1L;
+    public GoalPeriodService goalPeriodService;
+    private GoalPeriod selectedGoalPeriod;
+    private List<SearchField> searchFields, selectedSearchFields;
+
+    // Search functionality
+    private String searchTerm = "";
+
+    @PostConstruct
+    public void init() {
+        try {
+            goalPeriodService = ApplicationContextProvider.getBean(GoalPeriodService.class);
+            this.reloadFilterReset();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    @Override
+    public void reloadFromDB(int i, int i1, Map<String, Object> map) throws Exception {
+        super.setDataModels(goalPeriodService
+                .getInstances(new Search().addFilterEqual("recordStatus", RecordStatus.ACTIVE), i, i1));
+    }
+
+    // @Override
+    // public List<GoalPeriod> load(int first, int pageSize, Map<String, SortMeta>
+    // sortBy,
+    // Map<String, FilterMeta> filterBy) {
+    // return getDataModels();
+    // }
+
+    @Override
+    public void reloadFilterReset() {
+        super.setTotalRecords(goalPeriodService.countInstances(new Search()));
+        try {
+            super.reloadFilterReset();
+        } catch (Exception e) {
+            UiUtils.ComposeFailure("Error", e.getLocalizedMessage());
+        }
+
+    }
+
+    /**
+     * Deletes the specific GoalPeriod passed from the UI.
+     * 
+     * @param periodToDelete The record selected by the user in the data table.
+     */
+    public void deleteSelectedGoalsPeriod(GoalPeriod periodToDelete) {
+        try {
+            // We check the parameter directly. It's much safer.
+            if (periodToDelete != null) {
+                goalPeriodService.deleteInstance(periodToDelete);
+                MessageComposer.info("Success",
+                        "Period '" + periodToDelete.getPeriodName() + "' has been deleted.");
+                // The table refresh will be handled by the 'update' attribute on the button.
+            } else {
+                // This is a safeguard. It should not happen if the UI is correct.
+                MessageComposer.error("Error", "System Error: The record to delete was not provided.");
+            }
+        } catch (Exception e) {
+            MessageComposer.error("Deletion Failed", e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public List<ExcelReport> getExcelReportModels() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public String getFileName() {
+        return "";
+    }
+
+    @Override
+    public List<GoalPeriod> load(int i, int i1, Map<String, SortMeta> map, Map<String, FilterMeta> map1) {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Search for goal periods based on the search term
+     */
+    public void search() {
+        try {
+            if (searchTerm == null || searchTerm.trim().isEmpty()) {
+                // If search term is empty, reload all data
+                this.reloadFilterReset();
+            } else {
+                // Create search criteria
+                Search search = new Search();
+                search.addFilterEqual("recordStatus", RecordStatus.ACTIVE);
+                search.addFilterILike("periodName", "%" + searchTerm.trim() + "%");
+
+                // Get filtered results
+                List<GoalPeriod> filteredResults = goalPeriodService.getInstances(search, 0, Integer.MAX_VALUE);
+                super.setDataModels(filteredResults);
+                super.setTotalRecords(filteredResults.size());
+            }
+        } catch (Exception e) {
+            UiUtils.ComposeFailure("Search Error", "Error searching periods: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Clear the search and reload all data
+     */
+    public void clearSearch() {
+        searchTerm = "";
+        this.reloadFilterReset();
+    }
+
+    /**
+     * Activate a goal period (deactivates any currently active period first)
+     */
+    public void activateGoalPeriod(GoalPeriod periodToActivate) {
+        try {
+            if (periodToActivate == null) {
+                MessageComposer.error("Error", "No period selected to activate");
+                return;
+            }
+
+            // First, deactivate any currently active period
+            Search search = new Search(GoalPeriod.class);
+            search.addFilterEqual("recordStatus", RecordStatus.ACTIVE);
+            search.addFilterEqual("status", GoalPeriodStatus.ACTIVE);
+
+            List<GoalPeriod> activePeriods = goalPeriodService.getInstances(search, 0, Integer.MAX_VALUE);
+            for (GoalPeriod active : activePeriods) {
+                if (!active.getId().equals(periodToActivate.getId())) {
+                    active.setStatus(GoalPeriodStatus.IN_ACTIVE);
+                    goalPeriodService.saveInstance(active);
+                }
+            }
+
+            // Now activate the selected period
+            periodToActivate.setStatus(GoalPeriodStatus.ACTIVE);
+            goalPeriodService.saveInstance(periodToActivate);
+
+            MessageComposer.info("Success",
+                    "Goal period '" + periodToActivate.getPeriodName() + "' has been activated");
+            this.reloadFilterReset();
+
+        } catch (Exception e) {
+            MessageComposer.error("Activation Failed", "Error activating goal period: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Deactivate a goal period
+     */
+    public void deactivateGoalPeriod(GoalPeriod periodToDeactivate) {
+        try {
+            if (periodToDeactivate == null) {
+                MessageComposer.error("Error", "No period selected to deactivate");
+                return;
+            }
+
+            periodToDeactivate.setStatus(GoalPeriodStatus.IN_ACTIVE);
+            goalPeriodService.saveInstance(periodToDeactivate);
+
+            MessageComposer.info("Success",
+                    "Goal period '" + periodToDeactivate.getPeriodName() + "' has been deactivated");
+            this.reloadFilterReset();
+
+        } catch (Exception e) {
+            MessageComposer.error("Deactivation Failed", "Error deactivating goal period: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+}

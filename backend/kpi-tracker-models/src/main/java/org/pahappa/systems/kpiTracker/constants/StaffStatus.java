@@ -1,4 +1,4 @@
-package org.pahappa.systems.kpiTracker.models.constants;
+package org.pahappa.systems.kpiTracker.constants;
 
 public enum StaffStatus {
     ACTIVE,

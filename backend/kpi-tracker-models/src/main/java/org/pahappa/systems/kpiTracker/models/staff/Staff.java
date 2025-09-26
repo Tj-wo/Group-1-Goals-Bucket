@@ -1,6 +1,6 @@
 package org.pahappa.systems.kpiTracker.models.staff;
 
-import org.pahappa.systems.kpiTracker.models.constants.StaffStatus;
+import org.pahappa.systems.kpiTracker.constants.StaffStatus;
 import org.sers.webutils.model.Gender;
 import org.sers.webutils.model.security.User;
 import javax.persistence.*;

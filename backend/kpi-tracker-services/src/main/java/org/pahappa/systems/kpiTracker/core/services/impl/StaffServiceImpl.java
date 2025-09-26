@@ -6,7 +6,7 @@ import org.pahappa.systems.kpiTracker.core.dao.StaffDao;
 import org.pahappa.systems.kpiTracker.core.services.EmailNotificationService;
 import org.pahappa.systems.kpiTracker.core.services.MailService;
 import org.pahappa.systems.kpiTracker.core.services.StaffService;
-import org.pahappa.systems.kpiTracker.models.constants.StaffStatus;
+import org.pahappa.systems.kpiTracker.constants.StaffStatus;
 import org.pahappa.systems.kpiTracker.models.staff.Staff;
 import org.pahappa.systems.kpiTracker.utils.SecurePasswordGenerator;
 import org.pahappa.systems.kpiTracker.utils.Validate;

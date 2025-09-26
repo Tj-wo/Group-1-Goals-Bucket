@@ -1,0 +1,125 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/pages/californiatemplate/dialog-template.xhtml">
+    <ui:define name="head">
+        <style type="text/css">
+            .capitalized {
+                text-transform: capitalize;
+            }
+
+            .card {
+                background: #ffffff;
+                padding: 1rem;
+                border-radius: 4px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+
+            .form-container {
+                margin-top: 1rem;
+            }
+
+            .button-container {
+                display: flex;
+                justify-content: flex-end;
+                margin-top: 2rem;
+            }
+
+            hr {
+                margin: 1rem 0;
+                border: 0;
+                border-top: 1px solid #ccc;
+            }
+
+            .ui-selectmanymenu {
+                width: 100%;
+                max-height: 200px;
+            }
+
+            .error {
+                color: #d32f2f;
+                font-size: 0.9rem;
+                margin-top: 0.25rem;
+            }
+        </style>
+    </ui:define>
+    <ui:define name="content">
+        <title>Create New Period/Review Cycle</title>
+        <h:form id="periodForm" styleClass="card">
+            <div class="ui-g ui-fluid form-container">
+                <div class="ui-g-12 ui-md-6">
+                    <h5>Period name</h5>
+                    <div class="ui-inputgroup">
+                        <p:inputText id="periodName" value="#{goalPeriodForm.model.periodName}" required="true"
+                                     requiredMessage="Period name is required."
+                                     validatorMessage="Period name cannot have less than two letters">
+                            <f:validateLength minimum="2" maximum="50" />
+                        </p:inputText>
+                        <p:message for="periodForm:periodName" styleClass="error" />
+                    </div>
+                </div>
+
+                <div class="ui-g-12">
+                    <div class="ui-g-6 ui-md-6" style="padding: 0 0.5rem;">
+                        <h5>Start Date</h5>
+                        <div class="ui-inputgroup">
+                            <p:datePicker id="startDate" value="#{goalPeriodForm.model.startDate}"
+                                         showIcon="true" required="true" requiredMessage="Start date is required."
+                                         style="width: 100%;"/>
+                            <p:message for="periodForm:startDate" styleClass="error" />
+                        </div>
+                    </div>
+                    <div class="ui-g-6 ui-md-6" style="padding: 0 0.5rem;">
+                        <h5>End Date</h5>
+                        <div class="ui-inputgroup">
+                            <p:datePicker id="endDate" value="#{goalPeriodForm.model.endDate}"
+                                          showIcon="true" required="true" requiredMessage="End date is required."
+                                          style="width: 100%;"/>
+                            <p:message for="periodForm:endDate" styleClass="error" />
+                        </div>
+                    </div>
+                </div>
+<div >
+    <small> The sum of the Organisation fit Weight and Business Goal Weight must add to 100</small>
+</div>
+                <div class="ui-g-12 ui-md-6">
+                    <h5>Organizational Fit Weight(%)</h5>
+                    <div class="ui-inputgroup">
+                        <p:inputText id="organisationalFit" value="#{goalPeriodForm.model.organisationalFitScore}" required="true"
+                                     requiredMessage="Organisational Fit score is required."
+                                     validatorMessage="Organizational Fit Weight must be between 10 and 90."
+                                     >
+                            <f:validateLongRange minimum="10" maximum="90" />
+                        </p:inputText>
+                        <p:message for="periodForm:organisationalFit" styleClass="error" />
+                    </div>
+                </div>
+                <div class="ui-g-12 ui-md-6">
+                    <h5>Business Goals Weight(%)</h5>
+                    <div class="ui-inputgroup">
+                        <p:inputText id="businessGoals" value="#{goalPeriodForm.model.businessGoalContribution}" required="true"
+                                     requiredMessage="Business Goals Contribution is required."
+                                     validatorMessage="Business Goals Weight must be between 10 and 90"
+                                     >
+                            <f:validateLongRange minimum="10" maximum="90" />
+                        </p:inputText>
+                        <p:message for="periodForm:businessGoals" styleClass="error" />
+                    </div>
+                </div>
+
+                <div class="ui-g-12 button-container">
+                    <div class="ui-g-6" style="text-align: right;">
+                        <p:commandButton value="Cancel" validateClient="false" process="@this"
+                                         action="#{goalPeriodForm.hide}" styleClass="ui-button-outlined ui-button-help" />
+                    </div>
+                    <div class="ui-g-6">
+                        <p:commandButton value="Save" process="@form" actionListener="#{goalPeriodForm.save}"
+                                         update="@form" validateClient="true" />
+                    </div>
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

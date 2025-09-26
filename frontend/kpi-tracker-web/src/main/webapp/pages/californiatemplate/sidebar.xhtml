@@ -41,7 +41,10 @@
 
                     <p:submenu id="settings" label="Settings" icon="pi pi-fw pi-cog">
                         <p:menuitem id="roles" value="Roles" icon="fa fa-wrench" outcome="/pages/roles/RolesView" />
-                    </p:submenu>
+
+                        <p:menuitem id="system-setup" value="System-setup" icon="fa fa-cogs" outcome="/pages/settingsConfig/Settings" />
+
+                     </p:submenu>
                     <p:menuitem id="logout" value="Logout" icon="fa fa-fw fa-sign-out"
                         url="#{request.contextPath}/ServiceLogout" />
                 </pc:menu>

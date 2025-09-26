@@ -31,4 +31,8 @@ public class HyperLinks {
     public static final String TEAM_FORM_DIALOG = "/pages/team/TeamForm.xhtml";
     public static final String TEAM_MEMBER_VIEW = "/pages/team/TeamMemberView.xhtml?faces-redirect=true";
     public static final String TEAM_MEMBER_FORM_DIALOG = "/pages/team/TeamMemberForm.xhtml";
+
+   // GoalPeriod
+   public static final String GOAL_PERIOD_VIEW = "/pages/goals/goalPeriod/GoalPeriodView.xhtml?faces-redirect=true";
+    public static final String GOAL_PERIOD_FORM = "/pages/goals/goalPeriod/GoalPeriodForm.xhtml?faces-redirect=true";
 }
